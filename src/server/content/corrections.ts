@@ -71,7 +71,7 @@ export async function getPublicCorrections(limit = 50): Promise<CorrectionFeed> 
       state: "unavailable",
       corrections: [],
       reason:
-        "আমরা এখন সংশোধনের তালিকা পড়তে পারছি না, কারণ এই পরিবেশে ডেটাবেস কনফিগার করা নেই।",
+        "The corrections ledger is not connected in this environment. This is a configuration gap on our side, not a statement that no corrections exist.",
     };
   }
 
@@ -87,7 +87,8 @@ export async function getPublicCorrections(limit = 50): Promise<CorrectionFeed> 
     return {
       state: "unavailable",
       corrections: [],
-      reason: "সংশোধনের তালিকা লোড করা যায়নি।",
+      reason:
+        "The corrections ledger could not be loaded. This is a technical failure on our side, not a statement that no corrections exist.",
     };
   }
 
@@ -144,7 +145,7 @@ export async function getRevisionHistory(articleId: string): Promise<RevisionHis
     return {
       state: "unavailable",
       revisions: [],
-      reason: "ডেটাবেস কনফিগার করা নেই, তাই সংশোধনের ইতিহাস পাওয়া যাচ্ছে না।",
+      reason: "The database is not configured, so revision history is unavailable.",
     };
   }
 
@@ -160,7 +161,11 @@ export async function getRevisionHistory(articleId: string): Promise<RevisionHis
     .limit(100);
 
   if (error) {
-    return { state: "unavailable", revisions: [], reason: "সংশোধনের ইতিহাস লোড করা যায়নি।" };
+    return {
+      state: "unavailable",
+      revisions: [],
+      reason: "Revision history could not be loaded.",
+    };
   }
 
   const revisions: RevisionEntry[] = (data ?? []).map((row) => ({

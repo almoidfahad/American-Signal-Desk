@@ -108,3 +108,17 @@ describe("revision diff pairing", () => {
     expect(revisions.map((r) => r.revisionNo)).toEqual(snapshot);
   });
 });
+
+describe("reader-facing copy language", () => {
+  /**
+   * The public site is US-facing and written in English. An earlier version of this module
+   * returned Bangla strings, which rendered inside an English page in front of real readers.
+   * The working language of this project is Bangla; the *product's* language is not.
+   */
+  it("does not leak non-Latin script into reader-facing failure messages", async () => {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const feed = await getPublicCorrections();
+    expect(feed.reason).toBeTruthy();
+    expect(feed.reason).not.toMatch(/[\u0980-\u09FF]/);
+  });
+});
