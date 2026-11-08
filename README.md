@@ -15,9 +15,9 @@ This repository was empty when work began (one 23-byte README). See
 | Phase | State | Evidence |
 | --- | --- | --- |
 | 0 — Audit & plan | **Done** | `docs/PHASE-0-AUDIT.md` |
-| 1 — Foundation | **Done** | typecheck, lint, 114 unit tests, production build all pass locally |
+| 1 — Foundation | **Done** | typecheck, lint, 130 unit tests, production build all pass locally |
 | 2 — Identity & security | **Verified locally** | `docs/PHASE-2-VERIFICATION.md`; migrations apply cleanly, RLS suite passes |
-| 3 — Editorial CMS | **Verified locally** | `docs/PHASE-3-REPORT.md`, migrations `0002`/`0003`, RLS workflow suite passes |
+| 3 — Editorial CMS | **Verified locally** | `docs/PHASE-3-REPORT.md`, `docs/PHASE-3B-REVISIONS-CORRECTIONS.md`, migrations `0002`–`0004`, 3 RLS suites pass |
 | 4 — Public website | **Scaffolded** | homepage, article, category, search, policy pages, sitemap/robots |
 | 5–8 — Agents, billing, deploy, QA | **Not started** | — |
 
@@ -31,9 +31,9 @@ This repository was empty when work began (one 23-byte README). See
 ```
 npm run typecheck   → pass (tsc --noEmit, strict, noUncheckedIndexedAccess)
 npm run lint        → pass (eslint, --max-warnings=0)
-npm test            → pass (114 tests, 7 files)
+npm test            → pass (130 tests, 9 files)
 npm run build       → pass (22 routes prerendered)
-npm run test:db     → pass (migrations applied + 2 RLS suites, real PostgreSQL 16.2)
+npm run test:db     → pass (4 migrations applied + 3 RLS suites, real PostgreSQL 16.2)
 ```
 
 Live smoke checks against `next dev`: `/` `/article/:slug` `/category/:slug` `/api/health`
