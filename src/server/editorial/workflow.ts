@@ -5,7 +5,7 @@
  * permission each transition requires. Route handlers must call `assertTransition` inside the
  * same transaction that writes the new status, so a stale client cannot skip a review step.
  */
-import type { Permission } from "@/server/authz/permissions";
+import { permissionsForRoles, type Permission } from "@/server/authz/permissions";
 
 export const ARTICLE_STATUSES = [
   "draft",
@@ -145,6 +145,86 @@ export const TRANSITIONS: readonly TransitionRule[] = [
 export type TransitionResult =
   | { ok: true; rule: TransitionRule }
   | { ok: false; reason: string };
+
+/**
+ * The permission a *status value* itself requires, independent of any transition.
+ *
+ * This exists to close a real privilege-escalation path: an Author holds `article.edit.own`,
+ * so a row-level UPDATE policy alone would let them set `status = 'published'` directly and
+ * skip review entirely. Every write path must check this before persisting a status, and the
+ * database enforces the same rule independently (migration 0003).
+ */
+/**
+ * Permissions that only ever apply to an article you own. Holding the permission is not
+ * sufficient — ownership is checked as well.
+ */
+const SUBMIT_LEVEL_PERMISSIONS: ReadonlySet<Permission> = new Set([
+  "article.submit",
+  "article.create",
+]);
+
+const STATUS_PERMISSION: Readonly<Record<ArticleStatus, Permission>> = {
+  draft: "article.create",
+  pending_review: "article.submit",
+  changes_requested: "article.edit.own",
+  rejected: "article.edit.own",
+  approved: "article.approve",
+  scheduled: "article.schedule",
+  published: "article.publish",
+  archived: "article.unpublish",
+  trash: "article.delete",
+};
+
+export function permissionForStatus(status: ArticleStatus): Permission {
+  return STATUS_PERMISSION[status];
+}
+
+export function isArticleStatus(value: string): value is ArticleStatus {
+  return (ARTICLE_STATUSES as readonly string[]).includes(value);
+}
+
+/**
+ * Explains, in plain language, why a listener cannot perform a transition.
+ * Pure and testable so the UI and the API return the same wording.
+ */
+export function denialReason(
+  from: string,
+  to: string,
+  actor: { userId: string; roles: readonly string[] },
+  ownerId: string | null,
+): string | null {
+  const result = canTransition(from, to);
+  if (!result.ok) return result.reason;
+
+  const rule = result.rule;
+  const granted = permissionsForRoles(actor.roles);
+
+  if (rule.permission === "article.edit.own") {
+    const ownsIt = Boolean(actor.userId) && ownerId === actor.userId;
+    if (!ownsIt && !granted.has("article.edit.any")) {
+      return "শুধু নিজের ড্রাফটেই এই কাজটি করা যায়।";
+    }
+    return null;
+  }
+
+  if (!granted.has(rule.permission)) {
+    return `অনুমতি নেই (${rule.permission})।`;
+  }
+
+  /**
+   * Ownership still applies to submit/withdraw. An Author holds `article.submit`, but that
+   * must only ever act on their *own* draft — otherwise one writer could push a colleague's
+   * draft into the review queue. Found by tests/workflow-guards.test.ts.
+   */
+  if (SUBMIT_LEVEL_PERMISSIONS.has(rule.permission)) {
+    const ownsIt = Boolean(actor.userId) && ownerId === actor.userId;
+    if (!ownsIt && !granted.has("article.edit.any")) {
+      return "এই লেখাটি আপনার নয়, তাই এই ধাপটি আপনার জন্য নয়।";
+    }
+  }
+
+  return null;
+}
 
 export function findTransition(from: string, to: string): TransitionRule | undefined {
   return TRANSITIONS.find((t) => t.to === to && t.from.includes(from as ArticleStatus));

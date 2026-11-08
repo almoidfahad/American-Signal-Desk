@@ -7,7 +7,7 @@ AI newsroom / agent control plane.
 
 ---
 
-## Status — Phase 1 complete, Phase 2 schema drafted
+## Status — Phases 1 & 3 built, database migrations not yet applied
 
 This repository was empty when work began (one 23-byte README). See
 [`docs/PHASE-0-AUDIT.md`](docs/PHASE-0-AUDIT.md) for the audit that justified a greenfield build.
@@ -15,23 +15,23 @@ This repository was empty when work began (one 23-byte README). See
 | Phase | State | Evidence |
 | --- | --- | --- |
 | 0 — Audit & plan | **Done** | `docs/PHASE-0-AUDIT.md` |
-| 1 — Foundation | **Done** | typecheck, lint, 70 unit tests, production build all pass locally |
+| 1 — Foundation | **Done** | typecheck, lint, 107 unit tests, production build all pass locally |
 | 2 — Identity & security | **Schema written, not applied** | `supabase/migrations/0001_identity_rbac.sql` + `supabase/tests/rls_identity.sql` |
-| 3 — Editorial CMS | **Schema written, not applied** | `supabase/migrations/0002_editorial_content.sql` |
+| 3 — Editorial CMS | **Lifecycle built; schema not applied** | `docs/PHASE-3-REPORT.md`, migrations `0002`/`0003`, `src/server/editorial/service.ts` |
 | 4 — Public website | **Scaffolded** | homepage, article, category, search, policy pages, sitemap/robots |
 | 5–8 — Agents, billing, deploy, QA | **Not started** | — |
 
 > **No migration has been applied to any database.** Nothing has been deployed. No test result
-> below is inferred; each was run in this environment and the output is reproduced in
-> `docs/PHASE-1-REPORT.md`.
+> below is inferred; each was run in this environment and is reproduced in
+> `docs/PHASE-1-REPORT.md` and `docs/PHASE-3-REPORT.md`.
 
 ### Verified locally
 
 ```
 npm run typecheck   → pass (tsc --noEmit, strict, noUncheckedIndexedAccess)
 npm run lint        → pass (eslint, --max-warnings=0)
-npm test            → pass (70 tests, 4 files)
-npm run build       → pass (17 routes prerendered)
+npm test            → pass (107 tests, 6 files)
+npm run build       → pass (22 routes prerendered)
 ```
 
 Live smoke checks against `next dev`: `/` `/article/:slug` `/category/:slug` `/api/health`
@@ -126,7 +126,7 @@ src/components/        Brand, UI primitives, news cards, site chrome
 src/server/authz/      Permission matrix + role/agent authorization (pure, tested)
 src/server/auth/       Server-side session resolution
 src/server/content/    Public read layer, sanitisation, demo fixtures
-src/server/editorial/  Article workflow state machine (pure, tested)
+src/server/editorial/  Article state machine + authorization-checked service layer
 supabase/migrations/   Versioned SQL migrations
 supabase/tests/        RLS/authorization SQL assertions
 tests/                 Vitest unit suites
