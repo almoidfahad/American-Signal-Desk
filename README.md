@@ -15,7 +15,7 @@ This repository was empty when work began (one 23-byte README). See
 | Phase | State | Evidence |
 | --- | --- | --- |
 | 0 — Audit & plan | **Done** | `docs/PHASE-0-AUDIT.md` |
-| 1 — Foundation | **Done** | typecheck, lint, 107 unit tests, production build all pass locally |
+| 1 — Foundation | **Done** | typecheck, lint, 114 unit tests, production build all pass locally |
 | 2 — Identity & security | **Verified locally** | `docs/PHASE-2-VERIFICATION.md`; migrations apply cleanly, RLS suite passes |
 | 3 — Editorial CMS | **Verified locally** | `docs/PHASE-3-REPORT.md`, migrations `0002`/`0003`, RLS workflow suite passes |
 | 4 — Public website | **Scaffolded** | homepage, article, category, search, policy pages, sitemap/robots |
@@ -23,7 +23,7 @@ This repository was empty when work began (one 23-byte README). See
 
 > **Migrations and RLS suites now run against a real PostgreSQL 16.2** (local, via the
 > `supabase/tests/harness/` shim) and pass — see `docs/PHASE-2-VERIFICATION.md`. They have
-> **not** yet been applied to a hosted Supabase project, and nothing has been deployed.
+> **not** yet been applied to a hosted Supabase project.
 > No test result below is inferred; each was run and is reproduced in the phase reports.
 
 ### Verified locally
@@ -31,7 +31,7 @@ This repository was empty when work began (one 23-byte README). See
 ```
 npm run typecheck   → pass (tsc --noEmit, strict, noUncheckedIndexedAccess)
 npm run lint        → pass (eslint, --max-warnings=0)
-npm test            → pass (107 tests, 6 files)
+npm test            → pass (114 tests, 7 files)
 npm run build       → pass (22 routes prerendered)
 npm run test:db     → pass (migrations applied + 2 RLS suites, real PostgreSQL 16.2)
 ```
@@ -42,12 +42,29 @@ Live smoke checks against `next dev`: `/` `/article/:slug` `/category/:slug` `/a
 present on responses; the newsletter endpoint returns **503 NOT_CONFIGURED** (not a fake
 success) when no database exists.
 
+### Deployment
+
+Production is live at **https://american-signal-desk.vercel.app** (Vercel, project
+`american-signal-desk`, region `iad1`), built from this repository.
+
+**What that deployment actually is:** Phase 1 + 3 code with **no Supabase project, no Redis
+and no payments configured**. That is why the homepage states "Content service is not
+configured" and `/admin/login` disables sign-in instead of simulating it. The site is a
+faithful view of an unbacked build, not a working newsroom. Supplying
+`NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY`
+in the hosting provider's encrypted settings is what turns it into one.
+
+`/api/health` reports that state rather than hiding it: with dependencies missing it returns
+**HTTP 503 and `"status": "degraded"`**, so an uptime monitor surfaces the gap instead of
+showing green. It returns 200 only when every check is genuinely verified.
+
 ### Not verified (and not claimed)
 
-- RLS policies have **not been executed** — no PostgreSQL is reachable from this sandbox.
-  The SQL test suite is written and runnable (`npm run test:db`).
-- No Supabase project exists, so auth, session resolution and MFA gating are **unexercised**.
-- Redis, BullMQ, payments, AI providers and GitHub deployment are **not implemented**.
+- RLS policies have been executed **only against local PostgreSQL**, not a hosted Supabase
+  instance. The shim does not reproduce GoTrue, PostgREST or MFA.
+- No Supabase project exists, so auth, session resolution and MFA gating are **unexercised**
+  in any environment — including the live deployment.
+- Redis, BullMQ, payments, AI providers and GitHub deployment control are **not implemented**.
 
 ---
 
