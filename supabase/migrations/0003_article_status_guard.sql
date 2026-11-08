@@ -21,13 +21,43 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
+-- 0. Safe JWT claim reader
+-- -----------------------------------------------------------------------------
+-- `current_setting('request.jwt.claims', true)::jsonb` raises
+-- "invalid input syntax for type json" when the setting exists but is an empty string,
+-- which is exactly what happens for an unauthenticated request. A trigger that throws
+-- a type error on every anonymous write is both a bug and a denial-of-service lever.
+create or replace function public.jwt_role()
+returns text
+language plpgsql
+stable
+set search_path = pg_catalog, public, extensions
+as $$
+declare
+  claims text;
+begin
+  claims := nullif(current_setting('request.jwt.claims', true), '');
+  if claims is null then
+    return null;
+  end if;
+  return claims::jsonb ->> 'role';
+exception when others then
+  -- Malformed claims are treated as "no privileged role" — never as service_role.
+  return null;
+end;
+$$;
+
+comment on function public.jwt_role() is
+  'Reads the role claim from request.jwt.claims without ever raising on empty or malformed input.';
+
+-- -----------------------------------------------------------------------------
 -- 1. Status transition guard
 -- -----------------------------------------------------------------------------
 create or replace function public.enforce_article_status_permission()
 returns trigger
 language plpgsql
 security definer
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, extensions
 as $$
 declare
   required_permission text;
@@ -40,7 +70,7 @@ begin
 
   -- The service role (server-side worker/migration) is the trusted path and is audited
   -- by the application layer. It must still never be reachable from a browser.
-  is_service_role := (current_setting('request.jwt.claims', true)::jsonb ->> 'role') = 'service_role';
+  is_service_role := public.jwt_role() = 'service_role';
   if is_service_role then
     return new;
   end if;
@@ -128,13 +158,13 @@ create or replace function public.prevent_article_reassignment()
 returns trigger
 language plpgsql
 security definer
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, extensions
 as $$
 begin
   -- Reassigning an article to another author would let a user hand a draft to an
   -- accomplice, or take ownership of someone else's work. Only the service role may.
   if new.created_by is distinct from old.created_by
-     and (current_setting('request.jwt.claims', true)::jsonb ->> 'role') <> 'service_role' then
+     and public.jwt_role() is distinct from 'service_role' then
     raise exception 'Article ownership cannot be changed'
       using errcode = 'insufficient_privilege';
   end if;
@@ -154,7 +184,7 @@ create or replace function public.audit_article_status_change()
 returns trigger
 language plpgsql
 security definer
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, extensions
 as $$
 declare
   actor uuid;

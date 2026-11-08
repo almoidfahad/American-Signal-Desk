@@ -7,7 +7,7 @@ AI newsroom / agent control plane.
 
 ---
 
-## Status — Phases 1 & 3 built, database migrations not yet applied
+## Status — Phases 1 & 3 built; migrations and RLS suites now verified against real PostgreSQL
 
 This repository was empty when work began (one 23-byte README). See
 [`docs/PHASE-0-AUDIT.md`](docs/PHASE-0-AUDIT.md) for the audit that justified a greenfield build.
@@ -16,14 +16,15 @@ This repository was empty when work began (one 23-byte README). See
 | --- | --- | --- |
 | 0 — Audit & plan | **Done** | `docs/PHASE-0-AUDIT.md` |
 | 1 — Foundation | **Done** | typecheck, lint, 107 unit tests, production build all pass locally |
-| 2 — Identity & security | **Schema written, not applied** | `supabase/migrations/0001_identity_rbac.sql` + `supabase/tests/rls_identity.sql` |
-| 3 — Editorial CMS | **Lifecycle built; schema not applied** | `docs/PHASE-3-REPORT.md`, migrations `0002`/`0003`, `src/server/editorial/service.ts` |
+| 2 — Identity & security | **Verified locally** | `docs/PHASE-2-VERIFICATION.md`; migrations apply cleanly, RLS suite passes |
+| 3 — Editorial CMS | **Verified locally** | `docs/PHASE-3-REPORT.md`, migrations `0002`/`0003`, RLS workflow suite passes |
 | 4 — Public website | **Scaffolded** | homepage, article, category, search, policy pages, sitemap/robots |
 | 5–8 — Agents, billing, deploy, QA | **Not started** | — |
 
-> **No migration has been applied to any database.** Nothing has been deployed. No test result
-> below is inferred; each was run in this environment and is reproduced in
-> `docs/PHASE-1-REPORT.md` and `docs/PHASE-3-REPORT.md`.
+> **Migrations and RLS suites now run against a real PostgreSQL 16.2** (local, via the
+> `supabase/tests/harness/` shim) and pass — see `docs/PHASE-2-VERIFICATION.md`. They have
+> **not** yet been applied to a hosted Supabase project, and nothing has been deployed.
+> No test result below is inferred; each was run and is reproduced in the phase reports.
 
 ### Verified locally
 
@@ -32,6 +33,7 @@ npm run typecheck   → pass (tsc --noEmit, strict, noUncheckedIndexedAccess)
 npm run lint        → pass (eslint, --max-warnings=0)
 npm test            → pass (107 tests, 6 files)
 npm run build       → pass (22 routes prerendered)
+npm run test:db     → pass (migrations applied + 2 RLS suites, real PostgreSQL 16.2)
 ```
 
 Live smoke checks against `next dev`: `/` `/article/:slug` `/category/:slug` `/api/health`
@@ -71,7 +73,8 @@ instead of sample news.
 | `npm run typecheck` | TypeScript, strict |
 | `npm run lint` | ESLint, zero warnings tolerated |
 | `npm test` | Unit tests (Vitest) |
-| `npm run test:db` | **RLS/authorization SQL suite** — requires `DATABASE_URL` |
+| `npm run test:db` | Migrations + RLS/authorization suites against a real PostgreSQL |
+| `npm run test:all` | Unit tests, then the database suites |
 | `npm run verify` | typecheck → lint → test → build |
 
 ---

@@ -2,7 +2,7 @@
   "name": "american-signal-desk",
   "version": "0.1.0",
   "private": true,
-  "description": "American Signal Desk — US news platform with a secure editorial CMS and AI newsroom control plane.",
+  "description": "American Signal Desk \u2014 US news platform with a secure editorial CMS and AI newsroom control plane.",
   "engines": {
     "node": ">=22"
   },
@@ -14,9 +14,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:db": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/rls_identity.sql",
+    "test:db": "supabase/tests/harness/run.sh",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
-    "worker": "node --experimental-strip-types workers/index.ts"
+    "worker": "node --experimental-strip-types workers/index.ts",
+    "test:all": "npm run test && npm run test:db"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
