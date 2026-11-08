@@ -21,8 +21,22 @@ const securityHeaders = [
   },
 ];
 
+/**
+ * Hosts allowed to reach the dev server's internal resources (HMR, dev assets).
+ *
+ * Next.js blocks cross-origin access to dev resources by default. When the app is previewed
+ * through a proxied host the browser's origin no longer matches localhost, so HMR is refused
+ * and the preview degrades. Reading the host from an env var keeps this out of production
+ * behaviour and avoids hard-coding one sandbox's domain into the repo.
+ */
+const devOrigins = (process.env.ALLOWED_DEV_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  ...(devOrigins.length > 0 ? { allowedDevOrigins: devOrigins } : {}),
   poweredByHeader: false,
   // Fail the production build on type errors rather than silently shipping them.
   typescript: { ignoreBuildErrors: false },
