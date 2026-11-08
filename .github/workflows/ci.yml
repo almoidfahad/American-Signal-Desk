@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least privilege: read-only by default; no secrets are exposed to PRs from forks.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+        env:
+          # Build must succeed with no secrets: the app degrades to an honest
+          # "not configured" state. If the build starts needing secrets, the
+          # honest-failure behaviour has regressed.
+          NEXT_PUBLIC_SITE_URL: https://example.invalid
+
+      - name: Audit dependencies (high and above)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+  secret-scan:
+    name: Block committed secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Guard against committed env files
+        run: |
+          if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example$'; then
+            echo "::error::A .env file is tracked in git. Remove it and rotate any exposed keys."
+            exit 1
+          fi
+          echo "No tracked .env files found."
+
+      - name: Guard against hardcoded service-role keys
+        run: |
+          # Service-role JWTs are long-lived bearer tokens; catching one early matters.
+          if git grep -nE 'SUPABASE_SERVICE_ROLE_KEY[[:space:]]*=[[:space:]]*.{20,}' -- ':!*.example' ':!*.md'; then
+            echo "::error::A service-role key appears to be hardcoded."
+            exit 1
+          fi
+          echo "No hardcoded service-role keys found."
