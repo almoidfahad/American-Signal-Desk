@@ -32,7 +32,7 @@ interface Props {
 }
 
 const INPUT =
-  "mt-1 h-10 w-full rounded-md border border-navy-200 bg-white px-3 text-[13.5px] text-navy-900 placeholder:text-navy-400 focus:border-navy-500";
+  "mt-1 h-10 w-full rounded-md border border-navy-200 bg-white px-3 text-small text-navy-900 placeholder:text-navy-400 focus:border-navy-500";
 
 /**
  * An inline field error.
@@ -48,7 +48,7 @@ const INPUT =
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
-    <p id={id} role="alert" className="mt-1 text-[11.5px] font-semibold text-signal-700">
+    <p id={id} role="alert" className="mt-1 text-caption font-semibold text-signal-700">
       {message}
     </p>
   );
@@ -66,7 +66,7 @@ function Label({
   hint?: string;
 }) {
   return (
-    <label htmlFor={htmlFor} className="block text-[12.5px] font-bold text-navy-900">
+    <label htmlFor={htmlFor} className="block text-small font-bold text-navy-900">
       {children}
       {required && (
         <span className="ml-0.5 text-signal-600" aria-hidden="true">
@@ -122,7 +122,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
       {state && (
         <p
           role="status"
-          className={`rounded-md px-3 py-2 text-[13px] font-medium ring-1 ${
+          className={`rounded-md px-3 py-2 text-small font-medium ring-1 ${
             state.ok
               ? "bg-verify-50 text-verify-600 ring-verify-500/30"
               : "bg-signal-50 text-signal-800 ring-signal-300"
@@ -133,7 +133,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
       )}
 
       {readOnly && (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-[12.5px] text-amber-900 ring-1 ring-amber-300">
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-small text-amber-900 ring-1 ring-amber-300">
           Published articles can no longer be edited in place. To amend one, return it to draft
           first so the change is recorded in the revision history.
         </p>
@@ -154,7 +154,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
             placeholder="What happened, in plain terms"
             aria-invalid={Boolean(fieldErrors.title)}
             aria-describedby={fieldErrors.title ? "title-error" : undefined}
-            className={`${INPUT} text-[15px] font-semibold`}
+            className={`${INPUT} text-body font-semibold`}
           />
           <div id="title-error">
             <FieldError id="title-error" message={fieldErrors.title} />
@@ -167,7 +167,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
               URL slug
             </Label>
             <div className="mt-1 flex items-center rounded-md border border-navy-200 bg-white focus-within:border-navy-500">
-              <span className="pl-3 font-mono text-[11.5px] text-navy-400">/article/</span>
+              <span className="pl-3 font-mono text-caption text-navy-400">/article/</span>
               <input
                 id="slug"
                 name="slug"
@@ -180,10 +180,10 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
                 maxLength={120}
                 aria-describedby={fieldErrors.slug ? "slug-help slug-error" : "slug-help"}
                 aria-invalid={Boolean(fieldErrors.slug)}
-                className="h-10 w-full rounded-r-md px-2 font-mono text-[12.5px] outline-none"
+                className="h-10 w-full rounded-r-md px-2 font-mono text-small outline-none"
               />
             </div>
-            <p id="slug-help" className="mt-1 text-[11px] text-navy-500">
+            <p id="slug-help" className="mt-1 text-caption text-navy-500">
               Lowercase letters, numbers and hyphens. Fixed once published.
             </p>
             <FieldError id="slug-error" message={fieldErrors.slug} />
@@ -220,7 +220,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
             placeholder="One or two sentences a reader could stop at."
             aria-invalid={Boolean(fieldErrors.dek)}
             aria-describedby={fieldErrors.dek ? "dek-error" : undefined}
-            className="mt-1 w-full rounded-md border border-navy-200 bg-white px-3 py-2 text-[13.5px] focus:border-navy-500"
+            className="mt-1 w-full rounded-md border border-navy-200 bg-white px-3 py-2 text-small focus:border-navy-500"
           />
           <FieldError id="dek-error" message={fieldErrors.dek} />
         </div>
@@ -228,7 +228,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
         <div>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <Label htmlFor="bodyHtml">Body</Label>
-            <span className="text-[11px] text-navy-500 tabular">
+            <span className="text-caption text-navy-500 tabular">
               {body.length.toLocaleString("en-US")} characters
               <span aria-hidden="true" className="mx-1.5">
                 *
@@ -245,9 +245,9 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
             spellCheck
             aria-invalid={Boolean(fieldErrors.bodyHtml)}
             aria-describedby={fieldErrors.bodyHtml ? "bodyHtml-help bodyHtml-error" : "bodyHtml-help"}
-            className="mt-1 w-full rounded-md border border-navy-200 bg-white px-3 py-2 font-mono text-[12.5px] leading-relaxed focus:border-navy-500"
+            className="mt-1 w-full rounded-md border border-navy-200 bg-white px-3 py-2 font-mono text-small leading-relaxed focus:border-navy-500"
           />
-          <p id="bodyHtml-help" className="mt-1 text-[11px] leading-snug text-navy-500">
+          <p id="bodyHtml-help" className="mt-1 text-caption leading-snug text-navy-500">
             Allowed tags: p, h2, h3, strong, em, ul, ol, li, blockquote, a, table. Scripts and
             inline styles are stripped at render time, not on save - so saving never silently
             alters what you wrote.
@@ -256,7 +256,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
         </div>
 
         <details className="rounded-md border border-navy-200 bg-navy-50/50 p-3">
-          <summary className="cursor-pointer text-[12.5px] font-bold text-navy-900">
+          <summary className="cursor-pointer text-small font-bold text-navy-900">
             Hero image <span className="font-normal text-navy-500">(optional)</span>
           </summary>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -285,7 +285,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
                 placeholder="Describe the image for a reader who cannot see it"
                 className={INPUT}
               />
-              <p className="mt-1 text-[11px] text-navy-500">
+              <p className="mt-1 text-caption text-navy-500">
                 Without this the image renders as a labelled placeholder.
               </p>
             </div>
@@ -304,7 +304,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
         <Link href="/admin/articles" className={buttonClass("secondary", "md")}>
           Cancel
         </Link>
-        <p className="text-[11px] text-navy-500">
+        <p className="text-caption text-navy-500">
           Saving never publishes. Publication is a separate, permissioned action.
         </p>
       </div>

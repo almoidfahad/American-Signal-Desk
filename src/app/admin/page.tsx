@@ -87,15 +87,15 @@ export default async function AdminDashboardPage() {
     return (
       <div className="mx-auto max-w-lg py-16">
         <div className="rounded-card bg-white p-8 ring-1 ring-navy-100 shadow-sm">
-          <h1 className="text-xl font-bold text-navy-900">{copy.title}</h1>
-          <p className="mt-2 text-sm text-navy-600">{copy.body}</p>
+          <h1 className="text-dek font-bold text-navy-900">{copy.title}</h1>
+          <p className="mt-2 text-body text-navy-600">{copy.body}</p>
           <Link
             href={copy.action.href}
-            className="mt-5 inline-block rounded-md bg-signal-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-signal-700"
+            className="mt-5 inline-block rounded-md bg-signal-600 px-4 py-2.5 text-body font-bold text-white hover:bg-signal-700"
           >
             {copy.action.label}
           </Link>
-          <p className="mt-6 border-t border-navy-100 pt-4 text-xs text-navy-500">
+          <p className="mt-6 border-t border-navy-100 pt-4 text-caption text-navy-500">
             Authorisation is enforced on the server for every admin page and action. Hiding
             navigation is not how access is controlled here.
           </p>
@@ -113,7 +113,7 @@ export default async function AdminDashboardPage() {
         description={`Welcome back${access.session.displayName ? `, ${access.session.displayName}` : ""}. Here is what the newsroom can verify right now.`}
         actions={
           <>
-            <span className="hidden items-center gap-2 rounded-md border border-navy-200 bg-white px-3 py-1.5 text-[12px] font-medium text-navy-600 md:flex">
+            <span className="hidden items-center gap-2 rounded-md border border-navy-200 bg-white px-3 py-1.5 text-caption font-medium text-navy-600 md:flex">
               <span aria-hidden="true">🗓</span>
               {todayLabel()}
             </span>
@@ -166,7 +166,7 @@ export default async function AdminDashboardPage() {
             action={
               <Link
                 href="/admin/articles"
-                className="text-[11.5px] font-bold text-signal-700 hover:underline"
+                className="text-caption font-bold text-signal-700 hover:underline"
               >
                 View all
               </Link>
@@ -215,7 +215,7 @@ export default async function AdminDashboardPage() {
                 ))}
               </DataTable>
             ) : (
-              <p className="px-4 py-10 text-center text-[12.5px] text-navy-500">
+              <p className="px-4 py-10 text-center text-small text-navy-500">
                 No articles yet. Published and draft articles will appear here.
               </p>
             )}
@@ -233,7 +233,7 @@ export default async function AdminDashboardPage() {
                     className="flex h-full flex-col items-center justify-center gap-1.5 rounded-md bg-navy-50 px-2 py-4 text-center transition-colors hover:bg-navy-100 hover:text-signal-700"
                   >
                     <action.Icon className="h-[18px] w-[18px] text-navy-700" />
-                    <span className="text-[11.5px] leading-tight font-bold text-navy-800">
+                    <span className="text-caption leading-tight font-bold text-navy-800">
                       {action.label}
                     </span>
                   </Link>
@@ -251,8 +251,8 @@ export default async function AdminDashboardPage() {
                     className="flex items-start justify-between gap-3 px-4 py-2.5"
                   >
                     <div className="min-w-0">
-                      <p className="text-[12.5px] font-semibold text-navy-900">{check.label}</p>
-                      <p className="mt-0.5 text-[11px] leading-snug text-navy-500">
+                      <p className="text-small font-semibold text-navy-900">{check.label}</p>
+                      <p className="mt-0.5 text-caption leading-snug text-navy-500">
                         {check.detail}
                       </p>
                     </div>
@@ -274,7 +274,7 @@ export default async function AdminDashboardPage() {
                   </li>
                 ))}
               </ul>
-              <p className="border-t border-navy-100 px-4 py-2.5 text-[11px] leading-relaxed text-navy-500">
+              <p className="border-t border-navy-100 px-4 py-2.5 text-caption leading-relaxed text-navy-500">
                 &ldquo;Configured&rdquo; means credentials are present, not that the service was
                 probed. Live probes arrive with the worker phase.
               </p>

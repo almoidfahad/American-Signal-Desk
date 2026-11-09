@@ -31,14 +31,14 @@ export default async function AuditPage() {
         title="Audit Logs"
         description="Every privileged action and refused attempt, newest first. Append-only: rows cannot be edited or deleted."
         actions={
-          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-navy-700">
+          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-caption font-semibold text-navy-700">
             {result.ok ? `${rows.length} recent entr${rows.length === 1 ? "y" : "ies"}` : "Unavailable"}
           </span>
         }
       />
 
       {result.ok && denied > 0 && (
-        <div className="mb-4 rounded-md bg-signal-50 px-4 py-3 text-[12.5px] text-signal-900 ring-1 ring-signal-300">
+        <div className="mb-4 rounded-md bg-signal-50 px-4 py-3 text-small text-signal-900 ring-1 ring-signal-300">
           <span className="font-bold">
             {denied} refused attempt{denied === 1 ? "" : "s"} in this window.
           </span>{" "}
@@ -86,7 +86,7 @@ export default async function AuditPage() {
             ) : (
               rows.map((row) => (
                 <tr key={row.id} className="hover:bg-navy-50/60">
-                  <td className="px-4 py-2.5 text-[12px] text-navy-500 tabular">
+                  <td className="px-4 py-2.5 text-caption text-navy-500 tabular">
                     {new Date(row.occurredAt).toLocaleString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -97,11 +97,11 @@ export default async function AuditPage() {
                   <td className="px-4 py-2.5">
                     <Badge tone="slate">{row.actorType}</Badge>
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-[11.5px] text-navy-800">{row.action}</td>
-                  <td className="px-4 py-2.5 text-[12px] text-navy-600">
+                  <td className="px-4 py-2.5 font-mono text-caption text-navy-800">{row.action}</td>
+                  <td className="px-4 py-2.5 text-caption text-navy-600">
                     {row.resourceType}
                     {row.resourceId && (
-                      <span className="block truncate font-mono text-[10.5px] text-navy-400">
+                      <span className="block truncate font-mono text-micro text-navy-400">
                         {row.resourceId}
                       </span>
                     )}

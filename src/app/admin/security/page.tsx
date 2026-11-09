@@ -61,7 +61,7 @@ export default async function SecurityPage() {
         description="What the database enforces, what this session actually holds, and what has not been verified."
       />
 
-      <div className="mb-4 rounded-md bg-navy-50 px-4 py-3 text-[12.5px] leading-relaxed text-navy-700 ring-1 ring-navy-200">
+      <div className="mb-4 rounded-md bg-navy-50 px-4 py-3 text-small leading-relaxed text-navy-700 ring-1 ring-navy-200">
         <p className="font-bold">This page is not a green light</p>
         <p className="mt-1">
           No status is invented here. Each row below either cites the database rule that
@@ -76,8 +76,8 @@ export default async function SecurityPage() {
               <li key={entry.table} className="flex items-start gap-3 px-4 py-3">
                 <Badge tone="green">Rule</Badge>
                 <div className="min-w-0">
-                  <p className="font-mono text-[12px] font-semibold text-navy-900">{entry.table}</p>
-                  <p className="mt-0.5 text-[11.5px] leading-relaxed text-navy-600">{entry.rule}</p>
+                  <p className="font-mono text-caption font-semibold text-navy-900">{entry.table}</p>
+                  <p className="mt-0.5 text-caption leading-relaxed text-navy-600">{entry.rule}</p>
                 </div>
               </li>
             ))}
@@ -86,7 +86,7 @@ export default async function SecurityPage() {
 
         <div className="space-y-4">
           <Panel title="This session" bodyClassName="p-4">
-            <dl className="space-y-2.5 text-[12px]">
+            <dl className="space-y-2.5 text-caption">
               <div className="flex items-start justify-between gap-3">
                 <dt className="text-navy-500">Account</dt>
                 <dd className="text-right font-semibold text-navy-900">
@@ -119,12 +119,12 @@ export default async function SecurityPage() {
               {unverified.map((check) => (
                 <li key={check.label} className="px-4 py-3">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-[12px] font-bold text-navy-900">{check.label}</p>
+                    <p className="text-caption font-bold text-navy-900">{check.label}</p>
                     <Badge tone={check.ok ? "green" : "amber"}>
                       {check.ok ? "Verified" : "Unverified"}
                     </Badge>
                   </div>
-                  <p className="mt-0.5 text-[11.5px] leading-relaxed text-navy-600">
+                  <p className="mt-0.5 text-caption leading-relaxed text-navy-600">
                     {check.detail}
                   </p>
                 </li>
@@ -134,7 +134,7 @@ export default async function SecurityPage() {
         </div>
       </div>
 
-      <p className="mt-3 max-w-2xl text-[11.5px] leading-relaxed text-navy-500">
+      <p className="mt-3 max-w-2xl text-caption leading-relaxed text-navy-500">
         Session revocation, device lists and sign-in history are not shown because they are not
         read from anywhere. The provider owns that data; this build has no integration for it.
       </p>

@@ -67,7 +67,7 @@ export default async function ArticlesListPage({
         <Link
           href="/admin/articles"
           aria-current={statusFilter === "all" ? "page" : undefined}
-          className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-bold ring-1 transition-colors ${
+          className={`rounded-md px-2.5 py-1.5 text-caption font-bold ring-1 transition-colors ${
             statusFilter === "all"
               ? "bg-navy-900 text-white ring-navy-900"
               : "bg-white text-navy-700 ring-navy-200 hover:bg-navy-50"
@@ -83,7 +83,7 @@ export default async function ArticlesListPage({
               key={status}
               href={`/admin/articles?status=${status}`}
               aria-current={active ? "page" : undefined}
-              className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-bold ring-1 transition-colors ${
+              className={`rounded-md px-2.5 py-1.5 text-caption font-bold ring-1 transition-colors ${
                 active
                   ? "bg-navy-900 text-white ring-navy-900"
                   : "bg-white text-navy-700 ring-navy-200 hover:bg-navy-50"
@@ -104,7 +104,7 @@ export default async function ArticlesListPage({
       ) : !result.ok ? (
         <p
           role="alert"
-          className="rounded-md bg-signal-50 px-4 py-3 text-[13px] text-signal-800 ring-1 ring-signal-300"
+          className="rounded-md bg-signal-50 px-4 py-3 text-small text-signal-800 ring-1 ring-signal-300"
         >
           {result.message}
         </p>
@@ -147,7 +147,7 @@ export default async function ArticlesListPage({
                       >
                         {article.title}
                       </Link>
-                      <p className="mt-0.5 font-mono text-[10.5px] text-navy-400">
+                      <p className="mt-0.5 font-mono text-micro text-navy-400">
                         /{article.slug}
                       </p>
                     </td>
@@ -162,7 +162,7 @@ export default async function ArticlesListPage({
                     <td className="px-4 py-3">
                       <Link
                         href={`/admin/articles/${article.id}`}
-                        className="text-[11.5px] font-bold text-navy-700 hover:text-signal-700 hover:underline"
+                        className="text-caption font-bold text-navy-700 hover:text-signal-700 hover:underline"
                       >
                         Open
                       </Link>
@@ -173,7 +173,7 @@ export default async function ArticlesListPage({
             )}
           </DataTable>
           {result.data.truncated && (
-            <p className="border-t border-navy-100 px-4 py-2 text-[11.5px] text-navy-500">
+            <p className="border-t border-navy-100 px-4 py-2 text-caption text-navy-500">
               Showing the first 25 articles. There are more.
             </p>
           )}

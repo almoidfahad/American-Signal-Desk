@@ -38,7 +38,7 @@ export function TransitionControls({ articleId, transitions, action }: Props) {
 
   if (transitions.length === 0) {
     return (
-      <p className="text-sm text-navy-500">
+      <p className="text-body text-navy-500">
         No transitions are available to you for this article right now. The article has to move
         through its review chain, and each step requires a specific permission.
       </p>
@@ -50,7 +50,7 @@ export function TransitionControls({ articleId, transitions, action }: Props) {
       {state && (
         <p
           role="status"
-          className={`rounded-md px-3 py-2 text-sm ring-1 ${
+          className={`rounded-md px-3 py-2 text-body ring-1 ${
             state.ok
               ? "bg-verify-500/10 text-verify-600 ring-verify-500/30"
               : "bg-signal-50 text-signal-800 ring-signal-300"

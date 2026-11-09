@@ -56,17 +56,17 @@ export function PlannedFeature({
     <div className="mx-auto max-w-3xl">
       <div className="mb-4">
         <div className="flex flex-wrap items-center gap-2.5">
-          <h1 className="text-[22px] leading-tight font-extrabold tracking-tight text-navy-900">
+          <h1 className="text-heading leading-tight font-extrabold tracking-tight text-navy-900">
             {title}
           </h1>
           <Badge tone={statusCopy.tone}>{statusCopy.label}</Badge>
         </div>
-        <p className="mt-1.5 text-[13px] leading-relaxed text-navy-600">{summary}</p>
+        <p className="mt-1.5 text-small leading-relaxed text-navy-600">{summary}</p>
       </div>
 
       <Panel bodyClassName="p-0">
         <div className="border-b border-navy-100 bg-navy-50/60 px-4 py-3">
-          <p className="text-[12.5px] leading-relaxed text-navy-700">
+          <p className="text-small leading-relaxed text-navy-700">
             {statusCopy.blurb} Everything on this page is a description of the design that
             exists in code or documentation; none of it is a reading taken from a running
             system.
@@ -74,7 +74,7 @@ export function PlannedFeature({
         </div>
 
         <div className="px-4 py-4">
-          <h2 className="text-[10.5px] font-bold tracking-[0.12em] text-navy-500 uppercase">
+          <h2 className="text-micro font-bold tracking-[0.12em] text-navy-500 uppercase">
             What is missing
           </h2>
           <ul className="mt-2 space-y-2.5">
@@ -85,8 +85,8 @@ export function PlannedFeature({
                   className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-signal-500"
                 />
                 <div>
-                  <p className="text-[12.5px] font-bold text-navy-900">{entry.item}</p>
-                  <p className="mt-0.5 text-[12px] leading-relaxed text-navy-600">{entry.detail}</p>
+                  <p className="text-small font-bold text-navy-900">{entry.item}</p>
+                  <p className="mt-0.5 text-caption leading-relaxed text-navy-600">{entry.detail}</p>
                 </div>
               </li>
             ))}
@@ -94,12 +94,12 @@ export function PlannedFeature({
         </div>
 
         <div className="border-t border-navy-100 px-4 py-4">
-          <h2 className="text-[10.5px] font-bold tracking-[0.12em] text-navy-500 uppercase">
+          <h2 className="text-micro font-bold tracking-[0.12em] text-navy-500 uppercase">
             What it will do once built
           </h2>
           <ul className="mt-2 space-y-1.5">
             {whenReady.map((line) => (
-              <li key={line} className="flex gap-2 text-[12px] leading-relaxed text-navy-700">
+              <li key={line} className="flex gap-2 text-caption leading-relaxed text-navy-700">
                 <span aria-hidden="true" className="text-verify-600">
                   +
                 </span>
@@ -107,7 +107,7 @@ export function PlannedFeature({
               </li>
             ))}
           </ul>
-          <p className="mt-3 rounded-md bg-navy-50 px-3 py-2 text-[11.5px] leading-relaxed text-navy-600">
+          <p className="mt-3 rounded-md bg-navy-50 px-3 py-2 text-caption leading-relaxed text-navy-600">
             Gate: <span className="font-mono text-navy-800">{permission}</span>. This page is
             reachable now because the check is enforced by the page itself; the control
             surface will not appear until the backend it controls exists.
@@ -116,7 +116,7 @@ export function PlannedFeature({
 
         {alternatives && alternatives.length > 0 && (
           <div className="border-t border-navy-100 bg-navy-50/40 px-4 py-3.5">
-            <h2 className="text-[10.5px] font-bold tracking-[0.12em] text-navy-500 uppercase">
+            <h2 className="text-micro font-bold tracking-[0.12em] text-navy-500 uppercase">
               Available now
             </h2>
             <ul className="mt-2 flex flex-wrap gap-2">
@@ -124,10 +124,10 @@ export function PlannedFeature({
                 <li key={alt.href}>
                   <Link
                     href={alt.href}
-                    className="inline-flex flex-col rounded-md border border-navy-200 bg-white px-3 py-2 text-[12px] font-semibold text-navy-800 hover:border-navy-300 hover:text-signal-700"
+                    className="inline-flex flex-col rounded-md border border-navy-200 bg-white px-3 py-2 text-caption font-semibold text-navy-800 hover:border-navy-300 hover:text-signal-700"
                   >
                     {alt.label}
-                    <span className="mt-0.5 text-[10.5px] font-normal text-navy-500">
+                    <span className="mt-0.5 text-micro font-normal text-navy-500">
                       {alt.note}
                     </span>
                   </Link>

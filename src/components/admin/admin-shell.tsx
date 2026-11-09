@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Wordmark } from "@/components/brand";
@@ -39,6 +39,15 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const [drawerFor, setDrawerFor] = useState<string | null>(null);
+  // Escape closes the drawer, as any overlay should.
+  useEffect(() => {
+    if (!drawerFor) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setDrawerFor(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [drawerFor]);
   // Deriving drawer state from the path closes it on navigation without an effect.
   const drawerOpen = drawerFor === pathname;
 
@@ -90,7 +99,7 @@ export function AdminShell({
                 name="q"
                 type="search"
                 placeholder="Search articles, authors, or slugs…"
-                className="h-9 w-full rounded-md border border-navy-700 bg-navy-900 pl-9 pr-3 text-[13px] text-white placeholder:text-navy-300 focus:border-navy-400"
+                className="h-9 w-full rounded-md border border-navy-700 bg-navy-900 pl-9 pr-3 text-small text-white placeholder:text-navy-300 focus:border-navy-400"
               />
               <svg
                 viewBox="0 0 24 24"
@@ -111,7 +120,7 @@ export function AdminShell({
             <SystemStateChip />
             <Link
               href="/"
-              className="hidden items-center gap-1.5 rounded-md bg-signal-600 px-3 py-1.5 text-[12px] font-bold text-white hover:bg-signal-700 sm:flex"
+              className="hidden items-center gap-1.5 rounded-md bg-signal-600 px-3 py-1.5 text-caption font-bold text-white hover:bg-signal-700 sm:flex"
             >
               <ExternalIcon className="h-3.5 w-3.5" />
               View Live Site
@@ -120,15 +129,15 @@ export function AdminShell({
               <div className="flex items-center gap-2">
                 <span
                   aria-hidden="true"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-700 text-[12px] font-bold text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-700 text-caption font-bold text-white"
                 >
                   {initial}
                 </span>
                 <span className="hidden leading-tight sm:block">
-                  <span className="block text-[12px] font-semibold text-white">
+                  <span className="block text-caption font-semibold text-white">
                     {session.displayName ?? session.email ?? "Signed in"}
                   </span>
-                  <span className="block text-[10.5px] text-navy-300">
+                  <span className="block text-micro text-navy-300">
                     {session.roles.length > 0 ? session.roles.join(", ") : "No role assigned"}
                   </span>
                 </span>
@@ -136,7 +145,7 @@ export function AdminShell({
             ) : (
               <Link
                 href="/admin/login"
-                className="rounded-md bg-white px-3 py-1.5 text-[12px] font-bold text-navy-900"
+                className="rounded-md bg-white px-3 py-1.5 text-caption font-bold text-navy-900"
               >
                 Sign in
               </Link>
@@ -157,7 +166,7 @@ export function AdminShell({
           <nav className="px-2 py-3">
             {nav.map((group) => (
               <div key={group.group} className="mb-4">
-                <h2 className="px-2 pb-1.5 text-[10px] font-bold tracking-[0.14em] text-navy-500 uppercase">
+                <h2 className="px-2 pb-1.5 text-micro font-bold tracking-[0.14em] text-navy-500 uppercase">
                   {group.group}
                 </h2>
                 <ul className="space-y-0.5">
@@ -169,7 +178,7 @@ export function AdminShell({
                           href={item.href}
                           aria-current={active ? "page" : undefined}
                           onClick={() => setDrawerFor(null)}
-                          className={`flex items-center justify-between rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors ${
+                          className={`flex items-center justify-between rounded-md px-2.5 py-2 text-small font-medium transition-colors ${
                             active
                               ? "bg-signal-600 font-semibold text-white"
                               : "text-navy-200 hover:bg-navy-800 hover:text-white"
@@ -177,7 +186,7 @@ export function AdminShell({
                         >
                           <span>{item.label}</span>
                           {item.badge && (
-                            <span className="rounded bg-signal-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                            <span className="rounded bg-signal-600 px-1.5 py-0.5 text-micro font-bold text-white">
                               {item.badge}
                             </span>
                           )}
@@ -191,8 +200,8 @@ export function AdminShell({
           </nav>
 
           <div className="mx-2 mt-2 rounded-md border border-navy-800 bg-navy-900 p-3">
-            <p className="text-[11px] font-bold text-white">Server-authorised</p>
-            <p className="mt-1 text-[10.5px] leading-snug text-navy-300">
+            <p className="text-caption font-bold text-white">Server-authorised</p>
+            <p className="mt-1 text-micro leading-snug text-navy-300">
               Every admin page and action is checked on the server. Hiding a link is not how
               access is controlled here.
             </p>
@@ -226,7 +235,7 @@ export function AdminShell({
  */
 function SystemStateChip() {
   return (
-    <span className="hidden items-center gap-1.5 rounded-md border border-navy-700 bg-navy-900 px-2.5 py-1.5 text-[11px] font-semibold text-navy-200 sm:flex">
+    <span className="hidden items-center gap-1.5 rounded-md border border-navy-700 bg-navy-900 px-2.5 py-1.5 text-caption font-semibold text-navy-200 sm:flex">
       <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-amber-400" />
       Admin preview
     </span>

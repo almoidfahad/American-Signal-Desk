@@ -27,12 +27,12 @@ export function ListUnavailable<T>({
   return (
     <div
       role="alert"
-      className="rounded-md bg-signal-50 px-4 py-3 text-[13px] text-signal-900 ring-1 ring-signal-300"
+      className="rounded-md bg-signal-50 px-4 py-3 text-small text-signal-900 ring-1 ring-signal-300"
     >
       <p className="font-bold">This list could not be read</p>
       <p className="mt-1 leading-relaxed">
         The query ran and failed, so what you see is an error, not an empty result. The reason
-        reported by the database was: <span className="font-mono text-[12px]">{result.message}</span>
+        reported by the database was: <span className="font-mono text-caption">{result.message}</span>
       </p>
     </div>
   );

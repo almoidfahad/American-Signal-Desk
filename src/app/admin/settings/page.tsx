@@ -28,13 +28,13 @@ export default async function SettingsPage() {
         title="Settings"
         description="What this deployment can see, and what each missing setting disables. Values are never displayed - only whether a variable is set."
         actions={
-          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-navy-700">
+          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-caption font-semibold text-navy-700">
             {present} of {facts.length} configured
           </span>
         }
       />
 
-      <div className="mb-4 rounded-md bg-navy-50 px-4 py-3 text-[12.5px] leading-relaxed text-navy-700 ring-1 ring-navy-200">
+      <div className="mb-4 rounded-md bg-navy-50 px-4 py-3 text-small leading-relaxed text-navy-700 ring-1 ring-navy-200">
         <p className="font-bold">Nothing on this page is editable</p>
         <p className="mt-1">
           Settings are supplied by the environment. There is no settings table and no write
@@ -48,10 +48,10 @@ export default async function SettingsPage() {
           {facts.map((fact) => (
             <li key={fact.name} className="flex flex-wrap items-start gap-3 px-4 py-3">
               <div className="min-w-0 flex-1">
-                <p className="font-mono text-[12px] font-semibold text-navy-900">{fact.name}</p>
-                <p className="mt-0.5 text-[11.5px] text-navy-600">{fact.purpose}</p>
+                <p className="font-mono text-caption font-semibold text-navy-900">{fact.name}</p>
+                <p className="mt-0.5 text-caption text-navy-600">{fact.purpose}</p>
                 {!fact.present && (
-                  <p className="mt-1 text-[11.5px] leading-relaxed text-signal-800">
+                  <p className="mt-1 text-caption leading-relaxed text-signal-800">
                     Missing - {fact.ifMissing}.
                   </p>
                 )}
@@ -66,7 +66,7 @@ export default async function SettingsPage() {
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Panel title="Content source" bodyClassName="p-4">
-          <p className="text-[12.5px] text-navy-700">
+          <p className="text-small text-navy-700">
             The public site is currently serving{" "}
             <span className="font-bold">
               {state.contentMode === "live"
@@ -77,14 +77,14 @@ export default async function SettingsPage() {
             </span>
             .
           </p>
-          <p className="mt-1.5 text-[11.5px] leading-relaxed text-navy-500">
+          <p className="mt-1.5 text-caption leading-relaxed text-navy-500">
             Sample articles carry a visible notice in the public UI. Nothing marked sample is
             real reporting.
           </p>
         </Panel>
 
         <Panel title="Security posture" bodyClassName="p-4">
-          <p className="text-[12.5px] text-navy-700">
+          <p className="text-small text-navy-700">
             Second factor for privileged roles:{" "}
             <span className="font-bold">
               {state.mfaRequired ? "required" : "not required by policy"}
@@ -92,12 +92,12 @@ export default async function SettingsPage() {
             .
           </p>
           {state.mfaExplicitlyDisabled && (
-            <p className="mt-1.5 rounded bg-amber-50 px-2.5 py-2 text-[11.5px] leading-relaxed text-amber-900">
+            <p className="mt-1.5 rounded bg-amber-50 px-2.5 py-2 text-caption leading-relaxed text-amber-900">
               REQUIRE_MFA_FOR_ADMIN is explicitly disabled. That is a deliberate choice recorded
               here so it cannot happen quietly.
             </p>
           )}
-          <p className="mt-1.5 text-[11.5px] leading-relaxed text-navy-500">
+          <p className="mt-1.5 text-caption leading-relaxed text-navy-500">
             The default when the flag is unset is to require it, so a missing setting fails
             closed.
           </p>

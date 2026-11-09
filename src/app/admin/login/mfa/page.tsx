@@ -40,8 +40,8 @@ export default async function MfaPage() {
       </div>
 
       <div className="rounded-xl bg-white p-7 shadow-xl shadow-navy-900/5 ring-1 ring-navy-100">
-        <h1 className="text-[22px] font-extrabold text-navy-900">Two-factor verification</h1>
-        <p className="mt-1 text-[13px] text-navy-600">
+        <h1 className="text-heading font-extrabold text-navy-900">Two-factor verification</h1>
+        <p className="mt-1 text-small text-navy-600">
           Enter the 6-digit code from your authenticator app to continue.
         </p>
         <div className="mt-5">
@@ -49,7 +49,7 @@ export default async function MfaPage() {
         </div>
       </div>
 
-      <div className="mt-4 flex justify-between text-[11.5px]">
+      <div className="mt-4 flex justify-between text-caption">
         <Link href="/admin/login" className="font-semibold text-navy-700 hover:underline">
           Back to sign in
         </Link>

@@ -105,11 +105,11 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
     if (result.code === "NOT_FOUND") notFound();
     return (
       <div className="mx-auto max-w-lg py-16">
-        <h1 className="text-xl font-bold text-navy-900">This article cannot be opened</h1>
-        <p className="mt-2 text-[13px] text-navy-600">{result.message}</p>
+        <h1 className="text-dek font-bold text-navy-900">This article cannot be opened</h1>
+        <p className="mt-2 text-small text-navy-600">{result.message}</p>
         <Link
           href="/admin/articles"
-          className="mt-4 inline-block text-[13px] font-semibold text-navy-800 underline"
+          className="mt-4 inline-block text-small font-semibold text-navy-800 underline"
         >
           Back to the list
         </Link>
@@ -137,7 +137,7 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
   return (
     <div className="grid gap-5 xl:grid-cols-3">
       <div className="xl:col-span-2">
-        <nav aria-label="Breadcrumb" className="mb-2 text-[11.5px] text-navy-500">
+        <nav aria-label="Breadcrumb" className="mb-2 text-caption text-navy-500">
           <Link href="/admin/articles" className="hover:text-navy-900 hover:underline">
             News Management
           </Link>
@@ -148,12 +148,12 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
         </nav>
 
         <div className="mb-4 flex flex-wrap items-center gap-2.5">
-          <h1 className="text-[21px] leading-tight font-extrabold tracking-tight text-navy-900">
+          <h1 className="text-heading leading-tight font-extrabold tracking-tight text-navy-900">
             Edit Article
           </h1>
           <Badge tone={statusTone(article.status)}>{meta?.label ?? article.status}</Badge>
         </div>
-        <p className="-mt-2 mb-4 font-mono text-[11px] text-navy-400">/article/{article.slug}</p>
+        <p className="-mt-2 mb-4 font-mono text-caption text-navy-400">/article/{article.slug}</p>
 
         <Panel bodyClassName="p-5">
           <ArticleForm
@@ -177,7 +177,7 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
 
       <aside className="space-y-4">
         <Panel title="Next step" bodyClassName="p-4">
-          <p className="text-[11.5px] leading-relaxed text-navy-500">
+          <p className="text-caption leading-relaxed text-navy-500">
             Every transition is authorised on the server and written to the audit log.
           </p>
           <div className="mt-3">
@@ -190,7 +190,7 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
         </Panel>
 
         <Panel title="Details" bodyClassName="p-4">
-          <dl className="space-y-2.5 text-[12px]">
+          <dl className="space-y-2.5 text-caption">
             <div className="flex items-start justify-between gap-3">
               <dt className="text-navy-500">Your role</dt>
               <dd className="text-right font-semibold text-navy-900">
@@ -225,7 +225,7 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
                 <li key={item.id} className="py-2 first:pt-0">
                   <Link
                     href={`/admin/articles/${item.id}`}
-                    className="line-clamp-2 text-[12.5px] font-medium text-navy-800 hover:text-signal-700 hover:underline"
+                    className="line-clamp-2 text-small font-medium text-navy-800 hover:text-signal-700 hover:underline"
                   >
                     {item.title}
                   </Link>
@@ -234,7 +234,7 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
             </ul>
             <Link
               href="/admin/articles/review"
-              className="mt-2 inline-block text-[11.5px] font-bold text-signal-700 hover:underline"
+              className="mt-2 inline-block text-caption font-bold text-signal-700 hover:underline"
             >
               Open the full queue
             </Link>

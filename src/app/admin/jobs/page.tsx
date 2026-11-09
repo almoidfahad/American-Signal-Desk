@@ -63,17 +63,17 @@ export default async function JobsPage() {
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <Panel title="How work gets done">
-          <div className="space-y-3 px-4 py-3 text-[12.5px] leading-relaxed text-navy-700">
+          <div className="space-y-3 px-4 py-3 text-small leading-relaxed text-navy-700">
             <p>
-              A row in <code className="font-mono text-[11.5px]">jobs</code> is claimed by a
+              A row in <code className="font-mono text-caption">jobs</code> is claimed by a
               worker with a lease, run once, then finished. A worker that dies mid-job releases
               its claim by lease expiry rather than by a flag, so a crash delays work instead of
               losing it.
             </p>
             <p>
               The same work can be driven by a scheduler hitting{" "}
-              <code className="font-mono text-[11.5px]">POST /api/cron/tick</code> or by{" "}
-              <code className="font-mono text-[11.5px]">npm run worker</code>. Both call one
+              <code className="font-mono text-caption">POST /api/cron/tick</code> or by{" "}
+              <code className="font-mono text-caption">npm run worker</code>. Both call one
               shared runner, so a job cannot behave differently depending on who woke it up.
             </p>
             <p className="text-navy-600">
@@ -83,7 +83,7 @@ export default async function JobsPage() {
         </Panel>
 
         <Panel title="What runs, and how often">
-          <ul className="divide-y divide-navy-50 text-[12.5px]">
+          <ul className="divide-y divide-navy-50 text-small">
             {[
               ["publish_scheduled", "Every 60s", "Promotes scheduled articles whose publish_at has passed."],
               ["send_email", "Every 30s", "Drains the outbox. Retries with backoff; 4xx errors are permanent."],
@@ -92,16 +92,16 @@ export default async function JobsPage() {
             ].map(([kind, cadence, detail]) => (
               <li key={kind} className="px-4 py-2.5">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <span className="font-mono text-[11.5px] font-semibold text-navy-900">{kind}</span>
-                  <span className="text-[11px] font-semibold tracking-[0.04em] text-navy-500 uppercase">
+                  <span className="font-mono text-caption font-semibold text-navy-900">{kind}</span>
+                  <span className="text-caption font-semibold tracking-[0.04em] text-navy-500 uppercase">
                     {cadence}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[11.5px] leading-relaxed text-navy-600">{detail}</p>
+                <p className="mt-0.5 text-caption leading-relaxed text-navy-600">{detail}</p>
               </li>
             ))}
           </ul>
-          <p className="border-t border-navy-50 px-4 py-2.5 text-[11.5px] text-navy-600">
+          <p className="border-t border-navy-50 px-4 py-2.5 text-caption text-navy-600">
             Mail provider: {mail.provider}.
           </p>
         </Panel>
@@ -126,7 +126,7 @@ function QueueBody({
       <Panel title="Is it moving?" bodyClassName="">
         <div className="px-4 py-3">
           {moving ? (
-            <p className="text-[13px] leading-relaxed text-navy-800">
+            <p className="text-small leading-relaxed text-navy-800">
               <Badge tone="green">Running</Badge>{" "}
               <span className="ml-2">
                 A job was claimed or finished within the last five minutes, so something is
@@ -134,18 +134,18 @@ function QueueBody({
               </span>
             </p>
           ) : (
-            <p className="text-[13px] leading-relaxed text-navy-800">
+            <p className="text-small leading-relaxed text-navy-800">
               <Badge tone="amber">No recent activity</Badge>{" "}
               <span className="ml-2">
                 No job has changed state in the last five minutes. Either nothing was due, or
                 nothing is driving the queue — the counts below cannot tell those two apart, so
                 this page does not pretend to. Check that the scheduler is calling{" "}
-                <code className="font-mono text-[11.5px]">/api/cron/tick</code> or that a worker
+                <code className="font-mono text-caption">/api/cron/tick</code> or that a worker
                 process is running.
               </span>
             </p>
           )}
-          <p className="mt-2 text-[11.5px] text-navy-500">
+          <p className="mt-2 text-caption text-navy-500">
             Read at {formatNewsroom(snapshot.readAt, "datetime")} ({formatRelative(snapshot.readAt, now)}).
           </p>
         </div>
@@ -192,16 +192,16 @@ function QueueBody({
               ] as const
             ).map(([label, value]) => (
               <div key={label}>
-                <p className="text-[10.5px] font-bold tracking-[0.06em] text-navy-500 uppercase">
+                <p className="text-micro font-bold tracking-[0.06em] text-navy-500 uppercase">
                   {label}
                 </p>
-                <p className="mt-1 text-[20px] leading-none font-extrabold text-navy-900 tabular">
+                <p className="mt-1 text-dek leading-none font-extrabold text-navy-900 tabular">
                   {new Intl.NumberFormat("en-US").format(value)}
                 </p>
               </div>
             ))}
           </div>
-          <p className="border-t border-navy-50 px-4 py-2.5 text-[11.5px] leading-relaxed text-navy-600">
+          <p className="border-t border-navy-50 px-4 py-2.5 text-caption leading-relaxed text-navy-600">
             {outbox.queued + outbox.sending > 0 && mail.provider !== "resend"
               ? `Mail is queued but cannot be sent: provider is ${mail.provider}. Queued mail waits; nothing is marked sent and no attempt is spent.`
               : "Subscription confirmations are written here in the same transaction as the subscription change, then sent by the worker."}
@@ -229,11 +229,11 @@ function QueueBody({
               recent.map((job) => (
                 <tr key={job.id}>
                   <td>
-                    <span className="font-mono text-[11.5px] text-navy-900">
+                    <span className="font-mono text-caption text-navy-900">
                       {labelFor(job.kind)}
                     </span>
                     {job.lastError && (
-                      <p className="mt-0.5 max-w-[38ch] truncate text-[11px] text-signal-800">
+                      <p className="mt-0.5 max-w-[38ch] truncate text-caption text-signal-800">
                         {job.lastError}
                       </p>
                     )}
@@ -244,7 +244,7 @@ function QueueBody({
                   <td className="tabular">
                     {job.attempts}/{job.maxAttempts}
                   </td>
-                  <td className="whitespace-nowrap text-[11.5px] text-navy-600">
+                  <td className="whitespace-nowrap text-caption text-navy-600">
                     {formatRelative(job.updatedAt, now)}
                   </td>
                 </tr>
@@ -254,10 +254,10 @@ function QueueBody({
         </Panel>
       </div>
 
-      <p className="mt-4 text-[12px] leading-relaxed text-navy-600">
+      <p className="mt-4 text-caption leading-relaxed text-navy-600">
         Retrying or cancelling a job is not offered here.{" "}
-        <code className="font-mono text-[11.5px]">job.retry</code> and{" "}
-        <code className="font-mono text-[11.5px]">job.cancel</code> exist as permissions with
+        <code className="font-mono text-caption">job.retry</code> and{" "}
+        <code className="font-mono text-caption">job.cancel</code> exist as permissions with
         nothing behind them, and a button that did nothing would be worse than the absence of
         one. To clear a dead job, fix the cause and insert a fresh job — the failed row stays as
         the record of what happened.{" "}
@@ -281,17 +281,17 @@ function Unreadable({
   return (
     <Panel title="Queue">
       <div className="px-4 py-4">
-        <p className="text-[13px] font-bold text-navy-900">
+        <p className="text-small font-bold text-navy-900">
           {state === "not_configured" ? "No database, so nothing was read" : "The read failed"}
         </p>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-navy-700">{message}</p>
-        <p className="mt-2 text-[12.5px] leading-relaxed text-navy-700">
-          Every number on this page comes from the <code className="font-mono text-[11.5px]">jobs</code>{" "}
-          and <code className="font-mono text-[11.5px]">email_outbox</code> tables. Without them
+        <p className="mt-1 text-small leading-relaxed text-navy-700">{message}</p>
+        <p className="mt-2 text-small leading-relaxed text-navy-700">
+          Every number on this page comes from the <code className="font-mono text-caption">jobs</code>{" "}
+          and <code className="font-mono text-caption">email_outbox</code> tables. Without them
           there is no depth to report, so none is shown — a zero would read as &ldquo;nothing
           queued&rdquo;, which is a different claim entirely.
         </p>
-        <p className="mt-2 text-[11.5px] text-navy-500">
+        <p className="mt-2 text-caption text-navy-500">
           Set DATABASE_URL and SUPABASE_SERVICE_ROLE_KEY, run the migrations, then start the
           queue with <code className="font-mono">{worker}</code> or a scheduler calling{" "}
           <code className="font-mono">/api/cron/tick</code>.

@@ -57,6 +57,7 @@
   /*
    * Type scale. One size per role — every size a reader sees is a step on this ladder,
    * never a free-hand pixel value. Base 16px, major-third-ish steps:
+   *   micro    10px       console labels and dense badges (admin chrome)
    *   caption  12px       uppercase labels, bylines, captions, badges
    *   small    13px       compact titles and list rows
    *   body     15px       reading copy
@@ -68,6 +69,8 @@
    *   display  32 -> 42px news page titles
    * Wordmarks and logos are brand assets and sit outside this scale (src/components/brand.tsx).
    */
+  --text-micro: 0.625rem;
+  --text-micro--line-height: 1.4;
   --text-caption: 0.75rem;
   --text-caption--line-height: 1.4;
   --text-small: 0.8125rem;

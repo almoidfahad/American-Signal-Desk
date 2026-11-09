@@ -29,7 +29,7 @@ export default async function CategoriesPage() {
         title="Categories"
         description="The sections articles are filed under, in the order they appear on the public site."
         actions={
-          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-navy-700">
+          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-caption font-semibold text-navy-700">
             {result.ok ? `${rows.length} section${rows.length === 1 ? "" : "s"}` : "Count unavailable"}
           </span>
         }
@@ -39,7 +39,7 @@ export default async function CategoriesPage() {
         title="All sections"
         bodyClassName=""
         action={
-          <span className="text-[11px] font-semibold text-navy-500">Read-only in this build</span>
+          <span className="text-caption font-semibold text-navy-500">Read-only in this build</span>
         }
       >
         {!result.ok ? (
@@ -87,12 +87,12 @@ export default async function CategoriesPage() {
                   <td className="px-4 py-2.5">
                     <span className="font-semibold text-navy-900">{row.name}</span>
                     {row.description && (
-                      <p className="mt-0.5 line-clamp-1 max-w-[320px] text-[11.5px] text-navy-500">
+                      <p className="mt-0.5 line-clamp-1 max-w-[320px] text-caption text-navy-500">
                         {row.description}
                       </p>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-[11px] text-navy-500">{row.slug}</td>
+                  <td className="px-4 py-2.5 font-mono text-caption text-navy-500">{row.slug}</td>
                   <td className="px-4 py-2.5 text-navy-700 tabular">
                     {row.articleCount === null ? (
                       <span title="The count query failed">-</span>
@@ -109,7 +109,7 @@ export default async function CategoriesPage() {
                   <td className="px-4 py-2.5 text-right">
                     <Link
                       href={`/admin/articles?category=${row.slug}`}
-                      className="text-[11.5px] font-bold text-signal-700 hover:underline"
+                      className="text-caption font-bold text-signal-700 hover:underline"
                     >
                       View articles
                     </Link>

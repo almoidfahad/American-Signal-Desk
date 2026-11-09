@@ -22,15 +22,15 @@ export default async function NewArticlePage() {
   if (!can(actor, "article.create")) {
     return (
       <div className="mx-auto max-w-lg py-16">
-        <h1 className="text-xl font-bold text-navy-900">Not permitted</h1>
-        <p className="mt-2 text-[13px] text-navy-600">
+        <h1 className="text-dek font-bold text-navy-900">Not permitted</h1>
+        <p className="mt-2 text-small text-navy-600">
           Your role does not include permission to create articles (
           <code className="font-mono">article.create</code>). Ask a Super Admin to correct your
           role assignment.
         </p>
         <Link
           href="/admin/articles"
-          className="mt-4 inline-block text-[13px] font-semibold text-navy-800 underline"
+          className="mt-4 inline-block text-small font-semibold text-navy-800 underline"
         >
           Back to news management
         </Link>
@@ -44,7 +44,7 @@ export default async function NewArticlePage() {
 
   return (
     <div className="max-w-4xl">
-      <nav aria-label="Breadcrumb" className="mb-2 text-[11.5px] text-navy-500">
+      <nav aria-label="Breadcrumb" className="mb-2 text-caption text-navy-500">
         <Link href="/admin/articles" className="hover:text-navy-900 hover:underline">
           News Management
         </Link>

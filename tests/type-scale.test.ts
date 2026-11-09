@@ -45,6 +45,7 @@ describe("the ladder itself", () => {
   it("defines each step at its documented size", () => {
     // Pin the values: a scale whose steps drift is just scatter with names.
     const steps: Record<string, string> = {
+      "--text-micro": "0.625rem",
       "--text-caption": "0.75rem",
       "--text-small": "0.8125rem",
       "--text-body": "0.9375rem",

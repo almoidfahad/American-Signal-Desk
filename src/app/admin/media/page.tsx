@@ -40,7 +40,7 @@ export default async function MediaPage() {
         title="Media Library"
         description="Images available to articles, with the alt text readers depend on."
         actions={
-          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-navy-700">
+          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-caption font-semibold text-navy-700">
             {result.ok
               ? `${rows.length} asset${rows.length === 1 ? "" : "s"} - ${formatBytes(totalBytes)}`
               : "Count unavailable"}
@@ -48,10 +48,10 @@ export default async function MediaPage() {
         }
       />
 
-      <div className="mb-4 rounded-md bg-amber-50 px-4 py-3 text-[12.5px] leading-relaxed text-amber-900 ring-1 ring-amber-300">
+      <div className="mb-4 rounded-md bg-amber-50 px-4 py-3 text-small leading-relaxed text-amber-900 ring-1 ring-amber-300">
         <p className="font-bold">Uploads are not implemented in this build</p>
         <p className="mt-1">
-          The library is read from the <span className="font-mono text-[11.5px]">media_assets</span>{" "}
+          The library is read from the <span className="font-mono text-caption">media_assets</span>{" "}
           table, but there is no storage bucket configured and no upload flow yet. Records can
           only appear here if they were written directly to the database. No upload button is
           shown, because it would fail and the failure would look like a permissions problem.
@@ -103,12 +103,12 @@ export default async function MediaPage() {
                 <tr key={row.id} className="hover:bg-navy-50/60">
                   <td className="max-w-[220px] px-4 py-2.5">
                     <span className="block truncate font-semibold text-navy-900">{row.fileName}</span>
-                    <span className="block truncate font-mono text-[10.5px] text-navy-400">
+                    <span className="block truncate font-mono text-micro text-navy-400">
                       {row.storagePath}
                     </span>
                   </td>
                   <td className="max-w-[280px] px-4 py-2.5">
-                    <span className="line-clamp-2 text-[12px] text-navy-700">{row.altText}</span>
+                    <span className="line-clamp-2 text-caption text-navy-700">{row.altText}</span>
                   </td>
                   <td className="px-4 py-2.5">
                     <Badge tone="slate">{row.mimeType.replace("image/", "").toUpperCase()}</Badge>
@@ -117,7 +117,7 @@ export default async function MediaPage() {
                   <td className="px-4 py-2.5 text-navy-500 tabular">
                     {row.width && row.height ? `${row.width} x ${row.height}` : "-"}
                   </td>
-                  <td className="px-4 py-2.5 text-[12px] text-navy-500 tabular">
+                  <td className="px-4 py-2.5 text-caption text-navy-500 tabular">
                     {formatNewsroom(row.createdAt)}
                   </td>
                 </tr>

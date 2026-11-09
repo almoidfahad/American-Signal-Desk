@@ -44,14 +44,14 @@ export default async function UsersPage() {
         title="Users & Roles"
         description="Staff accounts, their roles, and whether each privileged account has enrolled a second factor."
         actions={
-          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-navy-700">
+          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-caption font-semibold text-navy-700">
             {result.ok ? `${rows.length} account${rows.length === 1 ? "" : "s"}` : "Count unavailable"}
           </span>
         }
       />
 
       {result.ok && unenrolled > 0 && (
-        <div className="mb-4 rounded-md bg-amber-50 px-4 py-3 text-[12.5px] text-amber-900 ring-1 ring-amber-300">
+        <div className="mb-4 rounded-md bg-amber-50 px-4 py-3 text-small text-amber-900 ring-1 ring-amber-300">
           <span className="font-bold">
             {unenrolled} privileged account{unenrolled === 1 ? "" : "s"} without a second factor.
           </span>{" "}
@@ -102,7 +102,7 @@ export default async function UsersPage() {
                 <tr key={row.id} className="hover:bg-navy-50/60">
                   <td className="px-4 py-2.5">
                     <span className="block font-semibold text-navy-900">{row.displayName}</span>
-                    <span className="block text-[11.5px] text-navy-500">{row.email ?? "-"}</span>
+                    <span className="block text-caption text-navy-500">{row.email ?? "-"}</span>
                   </td>
                   <td className="px-4 py-2.5">
                     {row.roles.length === 0 ? (
@@ -120,14 +120,14 @@ export default async function UsersPage() {
                   <td className="px-4 py-2.5">
                     <Badge tone={row.status === "active" ? "green" : "red"}>{row.status}</Badge>
                   </td>
-                  <td className="px-4 py-2.5 text-[12px]">
+                  <td className="px-4 py-2.5 text-caption">
                     {row.mfaEnrolled ? (
                       <span className="font-semibold text-verify-600">Enrolled</span>
                     ) : (
                       <span className="text-navy-500">Not enrolled</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-[12px] text-navy-500 tabular">
+                  <td className="px-4 py-2.5 text-caption text-navy-500 tabular">
                     {row.lastLoginAt
                       ? formatNewsroom(row.lastLoginAt)
                       : "Never"}
@@ -139,7 +139,7 @@ export default async function UsersPage() {
         )}
       </Panel>
 
-      <p className="mt-3 max-w-2xl text-[11.5px] leading-relaxed text-navy-500">
+      <p className="mt-3 max-w-2xl text-caption leading-relaxed text-navy-500">
         Role changes are not wired up in this build. Assigning a role needs{" "}
         <span className="font-mono">role.manage</span>, an audit entry and a refreshed session
         claim; only the first of those exists, so the table is read-only rather than showing a
