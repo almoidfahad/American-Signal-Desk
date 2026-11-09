@@ -4,8 +4,11 @@
  * This file exists so the UI can be reviewed before a database is provisioned.
  * Every value here is synthetic. It is only ever returned when:
  *   1. Supabase is not configured, AND
- *   2. we are not running a production build.
- * In production the content layer throws instead of inventing news — see repository.ts.
+ *   2. either we are not running a production build, or the operator has explicitly set
+ *      ASD_ALLOW_SAMPLE_CONTENT=1 to review the interface on a production build.
+ * Otherwise the content layer reports `unavailable` instead of inventing news. In every
+ * demo case `isDemoData` is true, which forces the "Sample content - not real reporting"
+ * banner on the public pages. See repository.ts.
  */
 import type { Article, ArticleCard, Category, HomePageData } from "./types";
 
