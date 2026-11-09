@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArticleCard, CategoryTag, formatPublished } from "@/components/news/article-card";
+import { ArticleCard, CategoryTag } from "@/components/news/article-card";
+import { formatDate } from "@/lib/dates";
 import { ShareMenu } from "@/components/news/share-menu";
 import { NoticeBanner } from "@/components/ui/states";
 import { getArticle, listArticleSlugs } from "@/server/content/repository";
@@ -152,7 +153,7 @@ export default async function ArticlePage({ params }: PageProps) {
             <>
               <span aria-hidden="true">&bull;</span>
               <time dateTime={article.publishedAt}>
-                Published {formatPublished(article.publishedAt)}
+                Published {formatDate(article.publishedAt)}
               </time>
             </>
           )}
@@ -160,7 +161,7 @@ export default async function ArticlePage({ params }: PageProps) {
             <>
               <span aria-hidden="true">&bull;</span>
               <time dateTime={article.updatedAt}>
-                Updated {formatPublished(article.updatedAt)}
+                Updated {formatDate(article.updatedAt)}
               </time>
             </>
           )}

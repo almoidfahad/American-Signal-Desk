@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ArticleCard as ArticleCardModel } from "@/server/content/types";
+import { formatDate } from "@/lib/dates";
 
 /**
  * Story presentation.
@@ -13,29 +14,6 @@ import type { ArticleCard as ArticleCardModel } from "@/server/content/types";
  * Alt text is never optional: an image with no alt text renders as a labelled placeholder
  * instead, because a missing description is an accessibility defect, not a design choice.
  */
-
-export function formatPublished(iso: string | null): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "America/New_York",
-  }).format(date);
-}
-
-export function formatRelative(iso: string | null): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  const minutes = Math.round((Date.now() - date.getTime()) / 60000);
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes} min ago`;
-  if (minutes < 60 * 24) return `${Math.floor(minutes / 60)} hr ago`;
-  return formatPublished(iso);
-}
 
 /** Placeholder artwork that looks intentional without pretending to be a photograph. */
 function ArtworkPlaceholder({
@@ -115,7 +93,7 @@ export function MetaLine({
         </>
       )}
       {article.publishedAt && (
-        <time dateTime={article.publishedAt}>{formatPublished(article.publishedAt)}</time>
+        <time dateTime={article.publishedAt}>{formatDate(article.publishedAt)}</time>
       )}
       <span aria-hidden="true">&bull;</span>
       <span>{article.readingMinutes} min read</span>
@@ -238,7 +216,7 @@ export function CompactPick({ article }: { article: ArticleCardModel }) {
       <h3 className="mt-2.5 text-[14px] leading-snug font-bold text-navy-900 group-hover:text-signal-700">
         <Link href={`/article/${article.slug}`}>{article.title}</Link>
       </h3>
-      <p className="mt-1 text-[11.5px] text-navy-500">{formatPublished(article.publishedAt)}</p>
+      <p className="mt-1 text-[11.5px] text-navy-500">{formatDate(article.publishedAt)}</p>
     </article>
   );
 }

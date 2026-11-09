@@ -1,3 +1,4 @@
+import { formatNewsroom } from "@/lib/dates";
 import type { Metadata } from "next";
 import { Badge, DataTable, PageHeader, Panel, TableEmpty } from "@/components/admin/ui";
 import { ListUnavailable } from "@/components/admin/list-states";
@@ -128,11 +129,7 @@ export default async function UsersPage() {
                   </td>
                   <td className="px-4 py-2.5 text-[12px] text-navy-500 tabular">
                     {row.lastLoginAt
-                      ? new Date(row.lastLoginAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
+                      ? formatNewsroom(row.lastLoginAt)
                       : "Never"}
                   </td>
                 </tr>

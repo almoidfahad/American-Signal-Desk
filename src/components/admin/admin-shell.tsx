@@ -90,7 +90,7 @@ export function AdminShell({
                 name="q"
                 type="search"
                 placeholder="Search articles, authors, or slugs…"
-                className="h-9 w-full rounded-md border border-navy-700 bg-navy-900 pl-9 pr-3 text-[13px] text-white placeholder:text-navy-400 focus:border-navy-400"
+                className="h-9 w-full rounded-md border border-navy-700 bg-navy-900 pl-9 pr-3 text-[13px] text-white placeholder:text-navy-300 focus:border-navy-400"
               />
               <svg
                 viewBox="0 0 24 24"
@@ -128,7 +128,7 @@ export function AdminShell({
                   <span className="block text-[12px] font-semibold text-white">
                     {session.displayName ?? session.email ?? "Signed in"}
                   </span>
-                  <span className="block text-[10.5px] text-navy-400">
+                  <span className="block text-[10.5px] text-navy-300">
                     {session.roles.length > 0 ? session.roles.join(", ") : "No role assigned"}
                   </span>
                 </span>
@@ -192,7 +192,7 @@ export function AdminShell({
 
           <div className="mx-2 mt-2 rounded-md border border-navy-800 bg-navy-900 p-3">
             <p className="text-[11px] font-bold text-white">Server-authorised</p>
-            <p className="mt-1 text-[10.5px] leading-snug text-navy-400">
+            <p className="mt-1 text-[10.5px] leading-snug text-navy-300">
               Every admin page and action is checked on the server. Hiding a link is not how
               access is controlled here.
             </p>

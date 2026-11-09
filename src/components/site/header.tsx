@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { timeInNewsroom, todayInNewsroom } from "@/lib/dates";
 import { BrandLink } from "@/components/brand";
 import { SiteNav } from "./site-nav";
 
@@ -27,29 +28,25 @@ const SOCIAL = [
   { href: "https://linkedin.com", label: "LinkedIn", path: "M5 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4ZM3 9h4v12H3V9Zm7 0h4v2c1-1 2-2 4-2 3 0 4 2 4 5v7h-4v-6c0-2-1-3-2-3s-2 1-2 3v6h-4V9Z" },
 ];
 
-function todayInNewYork(): { label: string; iso: string } {
-  const now = new Date();
-  const label = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "America/New_York",
-  }).format(now);
-  return { label, iso: now.toISOString().slice(0, 10) };
-}
-
-function timeInNewYork(): string {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "America/New_York",
-    timeZoneName: "short",
-  }).format(new Date());
-}
-
-export function SiteHeader({ categories }: { categories: { slug: string; name: string }[] }) {
-  const today = todayInNewYork();
+/**
+ * The masthead clock is rendered on the server, when the page is rendered — *not*
+ * when the reader opens it. For an ISR page that can be a minute old, so the time is
+ * marked as such in the markup rather than being presented as "now".
+ *
+ * The alternative — reading the clock on the client — would render a different value
+ * than the server sent and produce a hydration mismatch. Showing a truthful
+ * "as of" timestamp is better than showing a confident wrong one.
+ */
+export function SiteHeader({
+  categories,
+  renderedAt,
+}: {
+  categories: { slug: string; name: string }[];
+  /** ISO instant the page was rendered. Passed in so the render is pure. */
+  renderedAt?: string;
+}) {
+  const at = renderedAt ? new Date(renderedAt) : undefined;
+  const today = todayInNewsroom(at);
 
   return (
     <header className="border-b border-navy-100 bg-white">
@@ -61,7 +58,7 @@ export function SiteHeader({ categories }: { categories: { slug: string; name: s
             <span aria-hidden="true" className="text-navy-600">
               |
             </span>
-            <span className="tabular">{timeInNewYork()}</span>
+            <span className="tabular">{timeInNewsroom(at)}</span>
           </p>
           <div className="flex items-center gap-4">
             <nav aria-label="Utility" className="flex flex-wrap items-center gap-x-3 gap-y-1">

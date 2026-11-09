@@ -1,3 +1,4 @@
+import { formatNewsroom } from "@/lib/dates";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge, DataTable, LinkButton, PageHeader, Panel, StatCard } from "@/components/admin/ui";
@@ -74,12 +75,7 @@ const QUICK_ACTIONS: {
 ];
 
 function todayLabel(): string {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date());
+  return formatNewsroom(new Date().toISOString(), "day");
 }
 
 export default async function AdminDashboardPage() {
@@ -211,11 +207,7 @@ export default async function AdminDashboardPage() {
                     </td>
                     <td className="px-4 py-2.5 text-navy-500 tabular">
                       {article.updatedAt
-                        ? new Date(article.updatedAt).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                        ? formatNewsroom(article.updatedAt)
                         : "-"}
                     </td>
                   </tr>

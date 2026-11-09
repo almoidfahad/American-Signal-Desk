@@ -1,3 +1,4 @@
+import { formatNewsroom } from "@/lib/dates";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -205,12 +206,7 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
             <div className="flex items-start justify-between gap-3">
               <dt className="text-navy-500">Publish time</dt>
               <dd className="text-right font-semibold text-navy-900 tabular">
-                {article.publishAt
-                  ? new Intl.DateTimeFormat("en-US", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    }).format(new Date(article.publishAt))
-                  : "-"}
+                {article.publishAt ? formatNewsroom(article.publishAt, "datetime") : "-"}
               </dd>
             </div>
             <div className="flex items-start justify-between gap-3">

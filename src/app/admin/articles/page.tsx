@@ -1,3 +1,4 @@
+import { NO_DATE_ADMIN, formatNewsroom } from "@/lib/dates";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge, DataTable, LinkButton, PageHeader, Panel, TableEmpty } from "@/components/admin/ui";
@@ -20,13 +21,8 @@ export const dynamic = "force-dynamic";
  * security boundary - filtering by "published" does not grant the ability to read drafts.
  */
 
-function formatDate(iso: string | null): string {
-  if (!iso) return "-";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(iso));
+function formatRowDate(iso: string | null): string {
+  return formatNewsroom(iso, "compact", NO_DATE_ADMIN);
 }
 
 export default async function ArticlesListPage({
@@ -160,7 +156,7 @@ export default async function ArticlesListPage({
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-navy-500 tabular">
-                      {formatDate(article.updatedAt)}
+                      {formatRowDate(article.updatedAt)}
                     </td>
                     <td className="px-4 py-3">
                       <Link

@@ -90,7 +90,7 @@ export default function AdminLoginPage() {
                 <capability.Icon className="h-3.5 w-3.5 shrink-0 text-signal-500" />
                 {capability.label}
               </dt>
-              <dd className="mt-1 text-[10.5px] leading-snug text-navy-400">
+              <dd className="mt-1 text-[10.5px] leading-snug text-navy-300">
                 {capability.detail}
               </dd>
             </div>

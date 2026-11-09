@@ -26,6 +26,10 @@ const FALLBACK_SECTIONS = [
 ];
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
+  // Captured once per render so the masthead is a pure function of its input: server
+  // and client cannot disagree about the clock, and an ISR page states plainly which
+  // instant it describes.
+  const renderedAt = new Date().toISOString();
   const [items, categories] = await Promise.all([
     getBreakingNews().catch((): TickerItem[] => []),
     getCategories().catch(() => []),
@@ -38,7 +42,7 @@ export default async function PublicLayout({ children }: { children: React.React
       <a href="#main" className="skip-link">
         Skip to main content
       </a>
-      <SiteHeader categories={sections} />
+      <SiteHeader categories={sections} renderedAt={renderedAt} />
       <BreakingTicker items={items} />
       <main id="main" className="min-h-[50dvh]">
         {children}

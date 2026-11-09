@@ -213,3 +213,53 @@ claim, `-p` is passed explicitly, no header-based detection creeps back in, and 
 real non-Next process on a real port makes the launcher exit `1` with the
 refusal message. Sabotage check: restoring `"dev": "next dev"` fails the first
 test with the file named.
+
+---
+
+## Fixed: items 1–4 from the list above (commit follows)
+
+**Dateline, unified — `src/lib/dates.ts`.** Six formatters became one module. The
+corrections ledger printed `UTC` while story cards printed `America/New_York`, so a
+correction filed at 21:00 in New York carried a date one day later than the article
+it corrected. Everything a reader sees is now New York; admin tables are explicitly
+the newsroom's clock; `formatDate(null)` returns an em dash rather than an empty
+span, and `admin` tables get a hyphen so a dash in a numeric column cannot read as a
+minus sign. DST is `Intl`'s problem — there is no offset arithmetic anywhere.
+
+The masthead also had a quieter flaw: `<time dateTime>` was `now.toISOString()` —
+the *UTC* date — while the label was the New York date. For four hours every evening
+the machine-readable value contradicted the visible one. The `<time datetime>` is now
+the New York calendar date (`en-CA` gives ISO-8601 for free). `SiteHeader` also takes
+`renderedAt` instead of calling `new Date()` internally, so the render is a pure
+function of its input and cannot diverge between server and client.
+
+**Article form, error wiring — all five fields.** `FieldError` now *requires* an
+`id`, so an error that `aria-describedby` cannot address is a compile error rather
+than a silent half-announcement. `title`, `slug`, `dek`, `bodyHtml` and `heroImageUrl`
+each set `aria-invalid` and a `aria-describedby` that names both the help text and
+the error when one exists. `bodyHtml`'s "allowed tags" paragraph gained the
+`bodyHtml-help` id it was named by but never had.
+
+**Contrast.** The three `navy-400`-on-`navy-900` strings (role line, sidebar note,
+login capability details) moved to `navy-300`: 4.33:1 → 7.46:1. The admin search
+placeholder was the same 4.33:1 and is placeholder text, not decoration, so it moved
+too. Icons stayed at `navy-400` — they are not text and 3:1 is the correct bar.
+
+**`formatRelative` is no longer dead.** It moved into the date module and takes `now`
+as a parameter, so it is testable without freezing the clock. It also no longer
+prints "in -2 min" when a stamp is in the future (clock skew, scheduled publish).
+
+**`tests/dates-and-a11y.test.ts` (14 tests).** The important ones are structural, not
+example-based: no `Intl.DateTimeFormat` or `toLocaleDateString` may exist outside
+`src/lib/dates.ts`; no component may call `Date.now()` during render; every
+`aria-describedby` value in the form must resolve to an element that exists; every
+`<FieldError>` must carry an id; Navy-400 may not be used for text on navy
+backgrounds; and navy-300/navy-900 must compute to AA from the hex values actually
+in `globals.css`.
+
+Two of these tests were wrong at first and the sabotage run caught it. The
+`aria-describedby` test inspected the call sites and passed while the rendered `<p>`
+had lost its id — it only checked that `FieldError` was *handed* an id, not that it
+used one. It now renders the component's markup and asserts `id={id}` is present.
+The `Date.now()` test initially flagged rate limiting and session expiry, which are
+legitimately server-side; it is now scoped to components and page files.

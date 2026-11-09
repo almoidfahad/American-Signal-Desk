@@ -34,10 +34,21 @@ interface Props {
 const INPUT =
   "mt-1 h-10 w-full rounded-md border border-navy-200 bg-white px-3 text-[13.5px] text-navy-900 placeholder:text-navy-400 focus:border-navy-500";
 
-function FieldError({ message }: { message?: string }) {
+/**
+ * An inline field error.
+ *
+ * The `id` is required and not optional: an error that cannot be addressed by
+ * `aria-describedby` is only half-announced, and a *missing* id is exactly the bug
+ * this used to have — `aria-describedby="title-error"` pointing at an element that
+ * did not exist. Making the id mandatory means that mistake cannot compile.
+ *
+ * `role="alert"` still announces the message when it appears, so a reader is told
+ * twice over: once on appearance, and again when focus returns to the field.
+ */
+function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
-    <p role="alert" className="mt-1 text-[11.5px] font-semibold text-signal-700">
+    <p id={id} role="alert" className="mt-1 text-[11.5px] font-semibold text-signal-700">
       {message}
     </p>
   );
@@ -146,7 +157,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
             className={`${INPUT} text-[15px] font-semibold`}
           />
           <div id="title-error">
-            <FieldError message={fieldErrors.title} />
+            <FieldError id="title-error" message={fieldErrors.title} />
           </div>
         </div>
 
@@ -167,7 +178,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
                 }}
                 required
                 maxLength={120}
-                aria-describedby="slug-help"
+                aria-describedby={fieldErrors.slug ? "slug-help slug-error" : "slug-help"}
                 aria-invalid={Boolean(fieldErrors.slug)}
                 className="h-10 w-full rounded-r-md px-2 font-mono text-[12.5px] outline-none"
               />
@@ -175,7 +186,7 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
             <p id="slug-help" className="mt-1 text-[11px] text-navy-500">
               Lowercase letters, numbers and hyphens. Fixed once published.
             </p>
-            <FieldError message={fieldErrors.slug} />
+            <FieldError id="slug-error" message={fieldErrors.slug} />
           </div>
 
           <div>
@@ -207,9 +218,11 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
             rows={2}
             maxLength={400}
             placeholder="One or two sentences a reader could stop at."
+            aria-invalid={Boolean(fieldErrors.dek)}
+            aria-describedby={fieldErrors.dek ? "dek-error" : undefined}
             className="mt-1 w-full rounded-md border border-navy-200 bg-white px-3 py-2 text-[13.5px] focus:border-navy-500"
           />
-          <FieldError message={fieldErrors.dek} />
+          <FieldError id="dek-error" message={fieldErrors.dek} />
         </div>
 
         <div>
@@ -230,14 +243,16 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
             onChange={(event) => setBody(event.target.value)}
             rows={18}
             spellCheck
+            aria-invalid={Boolean(fieldErrors.bodyHtml)}
+            aria-describedby={fieldErrors.bodyHtml ? "bodyHtml-help bodyHtml-error" : "bodyHtml-help"}
             className="mt-1 w-full rounded-md border border-navy-200 bg-white px-3 py-2 font-mono text-[12.5px] leading-relaxed focus:border-navy-500"
           />
-          <p className="mt-1 text-[11px] leading-snug text-navy-500">
+          <p id="bodyHtml-help" className="mt-1 text-[11px] leading-snug text-navy-500">
             Allowed tags: p, h2, h3, strong, em, ul, ol, li, blockquote, a, table. Scripts and
             inline styles are stripped at render time, not on save - so saving never silently
             alters what you wrote.
           </p>
-          <FieldError message={fieldErrors.bodyHtml} />
+          <FieldError id="bodyHtml-error" message={fieldErrors.bodyHtml} />
         </div>
 
         <details className="rounded-md border border-navy-200 bg-navy-50/50 p-3">
@@ -253,9 +268,11 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
                 type="url"
                 defaultValue={article?.heroImageUrl ?? ""}
                 placeholder="https://…"
+                aria-invalid={Boolean(fieldErrors.heroImageUrl)}
+                aria-describedby={fieldErrors.heroImageUrl ? "heroImageUrl-error" : undefined}
                 className={INPUT}
               />
-              <FieldError message={fieldErrors.heroImageUrl} />
+              <FieldError id="heroImageUrl-error" message={fieldErrors.heroImageUrl} />
             </div>
             <div>
               <Label htmlFor="heroImageAlt" hint="(required for accessibility)">

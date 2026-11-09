@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/dates";
 import Link from "next/link";
 import type { CorrectionFeed } from "@/server/content/corrections";
 
@@ -48,7 +49,7 @@ export function CorrectionList({ feed }: { feed: CorrectionFeed }) {
               dateTime={entry.createdAt}
               className="text-xs font-semibold uppercase tracking-wide text-navy-500"
             >
-              {formatDate(entry.createdAt)}
+              {formatLedgerDate(entry.createdAt)}
             </time>
             <h3 className="mt-1 font-serif text-lg font-bold text-navy-900">
               {entry.articleSlug ? (
@@ -74,14 +75,10 @@ export function CorrectionList({ feed }: { feed: CorrectionFeed }) {
   );
 }
 
-function formatDate(iso: string): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "UTC",
-  }).format(date);
+/**
+ * One zone for both sides of a correction: the article's date and the ledger's date
+ * must never disagree about what day it is. `fallback: ""` keeps the ledger compact.
+ */
+function formatLedgerDate(iso: string): string {
+  return formatDate(iso, "ledger", { fallback: "" });
 }
