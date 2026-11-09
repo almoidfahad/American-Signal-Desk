@@ -214,7 +214,7 @@ src/server/http/       Uniform responses and the rate limiter
 scripts/               dev launcher, job worker, TypeScript alias resolver
 supabase/migrations/   Versioned SQL migrations (0001–0007)
 supabase/tests/        RLS/authorization SQL suites (6)
-tests/                 Vitest unit suites (21 files)
+tests/                 Vitest unit suites (24 files)
 docs/                  Audit, phase reports, code review
 ```
 

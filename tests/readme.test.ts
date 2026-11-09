@@ -53,6 +53,7 @@ describe("README: the numbers match the repository", () => {
 
     expect(readme).toContain(`${tests} unit tests`);
     expect(readme).toContain(`${tests} tests, ${suites.length} files`);
+    expect(readme).toContain(`tests/                 Vitest unit suites (${suites.length} files)`);
   });
 
   it("names the real RLS suite count", () => {
