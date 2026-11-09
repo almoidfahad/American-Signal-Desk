@@ -16,7 +16,7 @@ export interface EnvFact {
   ifMissing: string;
 }
 
-const KNOWN_ENV: Omit<EnvFact, "present">[] = [
+export const KNOWN_ENV: Omit<EnvFact, "present">[] = [
   {
     name: "NEXT_PUBLIC_SUPABASE_URL",
     purpose: "Supabase project URL; without it no session can be resolved",
@@ -33,9 +33,27 @@ const KNOWN_ENV: Omit<EnvFact, "present">[] = [
     ifMissing: "Article, category and audit queries are not attempted",
   },
   {
+    // Kept, but re-described. The queue is a Postgres table, so setting this changes nothing
+    // today; the old copy implied that a queue existed only when Redis did, which was never
+    // true after 0006.
     name: "REDIS_URL",
-    purpose: "Queue and cache",
-    ifMissing: "No queue consumer exists; the jobs page has nothing to read",
+    purpose: "Reserved for a future cache. The job queue does not use it",
+    ifMissing: "Nothing today. Setting it enables no feature",
+  },
+  {
+    name: "CRON_SECRET",
+    purpose: "Shared secret the scheduler presents to POST /api/cron/tick",
+    ifMissing: "The cron endpoint refuses every call, so scheduled articles never publish",
+  },
+  {
+    name: "RESEND_API_KEY",
+    purpose: "Mail provider key used by the outbox worker",
+    ifMissing: "Confirmation emails stay queued forever and every signup sits at pending",
+  },
+  {
+    name: "EMAIL_FROM",
+    purpose: "From-address for outgoing mail; must be on a domain you control",
+    ifMissing: "No mail is sent, even with a provider key set",
   },
   {
     name: "REQUIRE_MFA_FOR_ADMIN",
@@ -49,6 +67,32 @@ export function envFacts(): EnvFact[] {
     ...fact,
     present: Boolean(process.env[fact.name] && process.env[fact.name] !== ""),
   }));
+}
+
+/**
+ * The two ways the queue can be driven, as configuration facts rather than claims.
+ *
+ * Neither proves a scheduler is running — `CRON_SECRET` set means a call *could* be
+ * authenticated, not that one is arriving. The jobs page checks for evidence separately.
+ */
+export function schedulerPosture(): { cronSecret: boolean; workerCommand: string } {
+  return {
+    cronSecret: Boolean(process.env.CRON_SECRET && process.env.CRON_SECRET.length >= 16),
+    workerCommand: "npm run worker",
+  };
+}
+
+/** What the mail path needs, named so an operator can act on it. */
+export function mailPosture(): { provider: string; fromAddress: boolean } {
+  const apiKey = Boolean(process.env.RESEND_API_KEY);
+  const from = Boolean(process.env.EMAIL_FROM);
+  return {
+    provider: apiKey && from ? "resend" : `not configured (missing ${[
+      !apiKey && "RESEND_API_KEY",
+      !from && "EMAIL_FROM",
+    ].filter(Boolean).join(", ")})`,
+    fromAddress: from,
+  };
 }
 
 export interface Posture {

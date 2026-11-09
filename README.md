@@ -18,7 +18,7 @@ review of what is and is not yet sound.
 
 | Area | State | Evidence |
 | --- | --- | --- |
-| Foundation | **Done** | strict TypeScript, ESLint zero-warning, 248 unit tests, production build |
+| Foundation | **Done** | strict TypeScript, ESLint zero-warning, 274 unit tests, production build |
 | Identity & RBAC | **Verified against real PostgreSQL** | `docs/PHASE-2-VERIFICATION.md`, `rls_identity.sql` |
 | Editorial CMS | **Verified against real PostgreSQL** | `docs/PHASE-3-REPORT.md`, migrations `0002`–`0004` |
 | Public website | **Built** | homepage, article, category, search, corrections, policy pages, sitemap/robots |
@@ -32,7 +32,7 @@ Verified locally, at the time of writing:
 ```
 npm run typecheck   → pass (tsc --noEmit, strict, noUncheckedIndexedAccess)
 npm run lint        → pass (eslint --max-warnings=0)
-npm test            → pass (248 tests, 20 files)
+npm test            → pass (274 tests, 21 files)
 npm run build       → pass (16 pages prerendered, 3 API routes)
 npm run test:db     → pass (6 migrations applied + 6 RLS/authorization suites, PostgreSQL 16.2)
 ```
@@ -137,6 +137,14 @@ The queue exists because of one specific promise: an editor can schedule an arti
 until this was built nothing could move a row out of `scheduled`. Every deadline the product
 accepted would have been silently missed.
 
+The admin Queue Monitor reads this queue rather than describing it: counts per status, outbox
+depth, the fifteen most recently touched jobs, and a "moving / no recent activity" verdict
+derived from whether a job was actually claimed or finished in the last five minutes. That
+verdict is deliberately **not** derived from `CRON_SECRET` or `REDIS_URL` being set — a secret
+means a call *could* be authenticated, not that one is arriving. The page previously stated
+that no worker process existed and that nothing promoted scheduled articles; both were true
+once and were wrong by the time anyone read them again.
+
 ### Newsletter: double opt-in, in an outbox
 
 The endpoint used to answer `pending_confirmation` while nothing sent that confirmation — a
@@ -206,7 +214,7 @@ src/server/http/       Uniform responses and the rate limiter
 scripts/               dev launcher, job worker, TypeScript alias resolver
 supabase/migrations/   Versioned SQL migrations (0001–0007)
 supabase/tests/        RLS/authorization SQL suites (6)
-tests/                 Vitest unit suites (20 files)
+tests/                 Vitest unit suites (21 files)
 docs/                  Audit, phase reports, code review
 ```
 
@@ -216,7 +224,7 @@ docs/                  Audit, phase reports, code review
 
 1. Create the Supabase project and apply migrations after review. Confirm `/api/health`
    returns 200 rather than 503.
-2. Run `npm run test:db` against a non-production database and confirm all five suites pass.
+2. Run `npm run test:db` against a non-production database and confirm all six suites pass.
 3. Enable MFA in Supabase Auth; keep `REQUIRE_MFA_FOR_ADMIN` unset or `true`.
 4. Set `CRON_SECRET` and point a scheduler at `POST /api/cron/tick`, or run `npm run worker`.
    **Without one of the two, scheduled articles never publish** — the queue exists but nothing
