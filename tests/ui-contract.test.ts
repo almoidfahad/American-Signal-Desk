@@ -141,3 +141,47 @@ describe("admin navigation", () => {
     );
   });
 });
+
+describe("typography", () => {
+  /**
+   * The design calls for Inter, and globals.css named it. For a while it named it and nothing
+   * else: no @font-face, no font file, no loader. Every page therefore rendered in the system
+   * stack while the CSS claimed otherwise - a difference invisible to lint, the type checker
+   * and every screenshot taken on a machine that happens to have Inter installed.
+   *
+   * These assertions hold the three links of the chain together: a bundled file, a loader that
+   * exposes it as a CSS variable, and a font stack that consumes that variable.
+   */
+  const layout = readFileSync(join(ROOT, "src/app/layout.tsx"), "utf8");
+  const fontsModule = readFileSync(join(ROOT, "src/app/fonts.ts"), "utf8");
+  const globals = readFileSync(join(ROOT, "src/app/globals.css"), "utf8");
+
+  it("bundles the font file rather than linking a CDN", () => {
+    // The CSP is `font-src 'self' data:`, so a CDN link is blocked by the browser and falls
+    // back silently - the exact failure this whole block exists to prevent.
+    expect(globals).not.toMatch(/fonts\.googleapis\.com|fonts\.gstatic\.com/);
+    expect(fontsModule).toContain('path: "../fonts/Inter-latin-var.woff2"');
+    expect(statSync(join(ROOT, "src/fonts/Inter-latin-var.woff2")).size).toBeGreaterThan(10_000);
+  });
+
+  it("carries the font licence next to the file", () => {
+    // SIL OFL requires the licence to travel with the font.
+    const licence = readFileSync(join(ROOT, "src/fonts/Inter-LICENSE.txt"), "utf8");
+    expect(licence).toMatch(/SIL Open Font License/i);
+  });
+
+  it("exposes the font as a CSS variable and puts it on <html>", () => {
+    expect(fontsModule).toContain('variable: "--font-inter"');
+    expect(layout).toMatch(/<html[^>]*className=\{inter\.variable\}/);
+  });
+
+  it("resolves the sans stack through that variable", () => {
+    // If globals.css drops var(--font-inter), the loader is dead weight and the page silently
+    // returns to the system font.
+    expect(globals).toMatch(/--font-sans:\s*var\(--font-inter\)/);
+  });
+
+  it("keeps display swap so text is readable before the file arrives", () => {
+    expect(fontsModule).toContain('display: "swap"');
+  });
+});
