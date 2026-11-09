@@ -33,17 +33,21 @@ function supabase(): SupabaseClient | null {
 
 export function contentMode(): ContentMode {
   if (supabase()) return "live";
-  if (process.env.NODE_ENV === "production") return "unavailable";
-  // Design preview mode. Without it, a production build with no database is a dead end:
-  // the layout cannot be reviewed before a Supabase project exists, and the UI work is
+
+  // Design preview mode. Without it, a production build with no database is a dead end: the
+  // layout cannot be reviewed before a Supabase project exists, and the UI work is
   // unverifiable. The trade-off is deliberate and tightly bounded:
   //   - only reachable when the database is absent (a configured DB always wins)
   //   - only samples ship, and every one is marked isDemoData, which forces the visible
   //     "Sample content - not real reporting" banner on every public page
   //   - the health endpoint still reports degraded, and the admin refuses sign-in
   // It never invents a metric, a visitor count or a quote from a real person.
+  // Checked before the NODE_ENV gate, because a production build is exactly the case the
+  // flag exists for.
   if (process.env.ASD_ALLOW_SAMPLE_CONTENT === "1") return "demo";
-  return "unavailable";
+
+  if (process.env.NODE_ENV === "production") return "unavailable";
+  return "demo";
 }
 
 /**
