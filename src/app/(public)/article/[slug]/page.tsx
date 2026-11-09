@@ -85,7 +85,7 @@ export default async function ArticlePage({ params }: PageProps) {
   };
 
   return (
-    <div className="shell grid gap-8 py-6 lg:grid-cols-12">
+    <div className="shell grid gap-6 py-6 lg:grid-cols-12">
       <article className="lg:col-span-8">
         {data.isDemoData && (
           <div className="mb-5">
@@ -192,14 +192,14 @@ export default async function ArticlePage({ params }: PageProps) {
             <img
               src={article.imageUrl}
               alt={article.imageAlt}
-              className="w-full rounded-lg object-cover"
+              className="aspect-[16/10] w-full rounded-lg object-cover"
             />
             <figcaption className="mt-2 text-xs text-navy-500">{article.imageAlt}</figcaption>
           </figure>
         ) : (
           <div
             aria-hidden="true"
-            className="mt-6 flex aspect-[16/7] w-full items-center justify-center rounded-lg bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900"
+            className="mt-6 flex aspect-[16/10] w-full items-center justify-center rounded-lg bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900"
           >
             <span className="text-xs font-semibold tracking-widest text-navy-300 uppercase">
               Artwork pending

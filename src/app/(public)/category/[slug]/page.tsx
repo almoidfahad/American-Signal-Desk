@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArticleCard, CompactPick, MetaLine } from "@/components/news/article-card";
+import { ArticleCard, CompactPick, LeadStory } from "@/components/news/article-card";
 import { NewsletterForm } from "@/components/news/newsletter-form";
 import { EmptyState, NoticeBanner } from "@/components/ui/states";
 import { getCategories } from "@/server/content/repository";
@@ -57,7 +57,7 @@ export default async function CategoryPage({ params }: PageProps) {
   const others = categories.filter((c) => c.slug !== slug);
 
   return (
-    <div className="shell py-6">
+    <div className="shell space-y-8 py-6">
       <header className="border-b-2 border-navy-900 pb-4">
         <nav aria-label="Breadcrumb" className="text-[11.5px] text-navy-500">
           <ol className="flex flex-wrap items-center gap-1.5">
@@ -79,73 +79,33 @@ export default async function CategoryPage({ params }: PageProps) {
       </header>
 
       {isDemoData && (
-        <div className="mt-5">
-          <NoticeBanner tone="warning" title="Sample content — not real reporting">
-            The editorial database is not connected in this environment, so these stories are
-            labelled placeholders.
-          </NoticeBanner>
-        </div>
+        <NoticeBanner tone="warning" title="Sample content — not real reporting">
+          The editorial database is not connected in this environment, so these stories are
+          labelled placeholders.
+        </NoticeBanner>
       )}
 
       {contentUnavailable && (
-        <div className="mt-5">
-          <NoticeBanner tone="danger" title="Content service is not configured">
-            This deployment has no editorial database connected, so this section cannot be listed.
-          </NoticeBanner>
-        </div>
+        <NoticeBanner tone="danger" title="Content service is not configured">
+          This deployment has no editorial database connected, so this section cannot be listed.
+        </NoticeBanner>
       )}
 
       {articles.length === 0 ? (
-        <div className="mt-8">
-          <EmptyState
-            title={`No ${category.name} stories yet`}
-            description="When an editor publishes the first story in this section it will appear here."
-            action={{ href: "/", label: "Back to the homepage" }}
-          />
-        </div>
+        <EmptyState
+          title={`No ${category.name} stories yet`}
+          description="When an editor publishes the first story in this section it will appear here."
+          action={{ href: "/", label: "Back to the homepage" }}
+        />
       ) : (
-        <div className="mt-6 grid gap-8 lg:grid-cols-12">
+        <div className="grid gap-6 lg:grid-cols-12">
           <div className="lg:col-span-8">
-            {/* Lead */}
-            {lead && (
-              <article className="group grid gap-5 border-b border-navy-100 pb-6 sm:grid-cols-2">
-                <div className="aspect-[4/3] overflow-hidden rounded-md bg-navy-100">
-                  {lead.imageUrl && lead.imageAlt ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={lead.imageUrl}
-                      alt={lead.imageAlt}
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                      fetchPriority="high"
-                    />
-                  ) : (
-                    <div
-                      aria-hidden="true"
-                      className="flex h-full w-full items-center justify-center bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900 text-[10px] font-bold tracking-[0.18em] text-navy-300 uppercase"
-                    >
-                      {lead.categoryName} — artwork pending
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <h2 className="text-[24px] leading-tight font-extrabold text-navy-900 group-hover:text-signal-700 sm:text-[28px]">
-                    <Link href={`/article/${lead.slug}`}>{lead.title}</Link>
-                  </h2>
-                  {lead.dek && (
-                    <p className="mt-2 line-clamp-3 text-[14.5px] leading-relaxed text-navy-600">
-                      {lead.dek}
-                    </p>
-                  )}
-                  <div className="mt-3">
-                    <MetaLine article={lead} />
-                  </div>
-                </div>
-              </article>
-            )}
+            {/* Lead — the same card the homepage leads its band with */}
+            {lead && <LeadStory article={lead} />}
 
             {/* Two-up */}
             {secondary.length > 0 && (
-              <div className="mt-6 grid gap-6 border-b border-navy-100 pb-6 sm:grid-cols-2">
+              <div className="mt-6 grid gap-5 border-b border-navy-100 pb-6 sm:grid-cols-2">
                 {secondary.map((article) => (
                   <CompactPick key={article.slug} article={article} />
                 ))}
@@ -157,14 +117,14 @@ export default async function CategoryPage({ params }: PageProps) {
               <div className="mt-6 divide-y divide-navy-100">
                 {remainder.map((article) => (
                   <div key={article.slug} className="py-4 first:pt-0">
-                    <ArticleCard article={article} />
+                    <ArticleCard article={article} showDek />
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          <aside className="space-y-6 lg:col-span-4">
+          <aside className="space-y-5 lg:col-span-4">
             <section
               aria-labelledby="section-newsletter"
               className="rounded-card bg-navy-900 p-4 on-dark"
