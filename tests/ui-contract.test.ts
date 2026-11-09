@@ -55,6 +55,63 @@ describe("product copy language", () => {
   });
 });
 
+describe("icon rendering", () => {
+  /**
+   * Unicode pictographs (pencil, envelope, shield, star, arrows) were used as icons. They read
+   * fine in a design tool and render as empty boxes on any system whose font lacks the glyph -
+   * the control then looks broken rather than plain.
+   *
+   * Text punctuation such as an em dash inside a sentence is fine: a missing em dash degrades
+   * to a hyphen. A *pictograph standing in for an icon* is not, because there is no fallback
+   * that still communicates the meaning. Icons come from src/components/ui/icons.tsx.
+   */
+  // Arrows in a comment or a doc string are prose ("permission -> transition legality");
+  // an arrow rendered as a glyph on the page is an icon. The scan therefore skips comment
+  // lines and looks only at what can reach the DOM.
+  const PICTOGRAPHS = /[\u2190-\u21FF\u2300-\u23FF\u2600-\u27BF\u2B00-\u2BFF\uFE0F]|&#\d+;/;
+  /**
+   * A whole-line comment, or a trailing `// ...` comment. The latter matters because
+   * `if (!isRole(role)) continue; // unknown role -> no permissions` is prose too, and a
+   * check that flagged it would be turned off rather than fixed.
+   */
+  const isComment = (line: string) => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*")) return true;
+    // Ignore a trailing comment, but not a `//` that appears inside a string literal.
+    const marker = line.indexOf(" // ");
+    if (marker === -1) return false;
+    const before = line.slice(0, marker);
+    return (before.match(/"/g)?.length ?? 0) % 2 === 0;
+  };
+
+  it("does not use Unicode characters as icons", () => {
+    const offenders = walk(join(ROOT, "src"))
+      .map((file) => {
+        const lines = readFileSync(file, "utf8")
+          .split("\n")
+          .map((line, index) => ({ line, number: index + 1 }))
+          .filter((entry) => !isComment(entry.line) && PICTOGRAPHS.test(entry.line))
+          .map((entry) => `${entry.number}: ${entry.line.trim()}`);
+        return { file: relative(ROOT, file), lines };
+      })
+      .filter((entry) => entry.lines.length > 0);
+
+    expect(
+      offenders,
+      `Unicode used as an icon. Draw it in src/components/ui/icons.tsx instead:\n${offenders
+        .map((o) => `  ${o.file}\n    ${o.lines.join("\n    ")}`)
+        .join("\n")}`,
+    ).toEqual([]);
+  });
+
+  it("keeps every icon out of the accessibility tree", () => {
+    // An icon announced alongside its own label is read twice. The label carries the meaning.
+    const icons = readFileSync(join(ROOT, "src/components/ui/icons.tsx"), "utf8");
+    expect(icons).toContain('aria-hidden="true"');
+    expect(icons).toContain("focusable=\"false\"");
+  });
+});
+
 describe("admin navigation", () => {
   const layout = readFileSync(join(ROOT, "src/app/admin/layout.tsx"), "utf8");
   const hrefs: string[] = [...layout.matchAll(/href:\s*"(\/admin[^"]*)"/g)].map(

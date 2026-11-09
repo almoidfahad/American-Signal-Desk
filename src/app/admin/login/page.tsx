@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Wordmark } from "@/components/brand";
 import { NotConfigured } from "@/components/ui/states";
+import {
+  ChartIcon,
+  FileTextIcon,
+  ShieldIcon,
+  StarIcon,
+  UsersIcon,
+} from "@/components/ui/icons";
 import { AdminLoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -12,10 +19,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const CAPABILITIES = [
-  { label: "News Management", detail: "Draft -> review -> publish", icon: "▤" },
-  { label: "User Management", detail: "Role-based access", icon: "◉" },
-  { label: "Audit Trail", detail: "Append-only records", icon: "▲" },
-  { label: "Secure Access", detail: "MFA enforced", icon: "⛨" },
+  { label: "News Management", detail: "Draft -> review -> publish", Icon: FileTextIcon },
+  { label: "User Management", detail: "Role-based access", Icon: UsersIcon },
+  { label: "Audit Trail", detail: "Append-only records", Icon: ChartIcon },
+  { label: "Secure Access", detail: "MFA enforced", Icon: ShieldIcon },
 ];
 
 /**
@@ -80,9 +87,7 @@ export default function AdminLoginPage() {
               className="rounded-md bg-navy-900/80 p-3 ring-1 ring-navy-800 backdrop-blur-sm"
             >
               <dt className="flex items-center gap-1.5 text-[11px] font-bold text-white">
-                <span aria-hidden="true" className="text-signal-500">
-                  {capability.icon}
-                </span>
+                <capability.Icon className="h-3.5 w-3.5 shrink-0 text-signal-500" />
                 {capability.label}
               </dt>
               <dd className="mt-1 text-[10.5px] leading-snug text-navy-400">
@@ -108,9 +113,9 @@ export default function AdminLoginPage() {
             <div className="text-center">
               <span
                 aria-hidden="true"
-                className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-navy-900 text-[20px] text-white"
+                className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-navy-900 text-white"
               >
-                ⛨
+                <ShieldIcon className="h-6 w-6" />
               </span>
               <h2 className="mt-3 text-[24px] leading-tight font-extrabold text-navy-900">
                 Admin Panel Login
@@ -118,7 +123,7 @@ export default function AdminLoginPage() {
               <p className="mt-1 text-[13px] text-navy-600">Sign in to your account to continue</p>
               <div aria-hidden="true" className="mt-5 flex items-center gap-3">
                 <span className="h-px flex-1 bg-navy-100" />
-                <span className="text-[11px] text-signal-600">★</span>
+                <StarIcon className="h-3.5 w-3.5 text-signal-600" />
                 <span className="h-px flex-1 bg-navy-100" />
               </div>
             </div>
@@ -146,9 +151,7 @@ export default function AdminLoginPage() {
 
           <div className="mt-5 rounded-lg bg-white p-3 text-center ring-1 ring-navy-100">
             <p className="flex items-center justify-center gap-1.5 text-[11.5px] font-bold text-navy-900">
-              <span aria-hidden="true" className="text-verify-600">
-                ⛨
-              </span>
+              <ShieldIcon className="h-3.5 w-3.5 shrink-0 text-verify-600" />
               Server-authorised access
             </p>
             <p className="mt-0.5 text-[10.5px] leading-snug text-navy-500">

@@ -9,6 +9,7 @@ import {
 } from "@/components/news/article-card";
 import { NewsletterForm } from "@/components/news/newsletter-form";
 import { NoticeBanner } from "@/components/ui/states";
+import { MailIcon, StarIcon, TrendingIcon } from "@/components/ui/icons";
 import { getHomePage } from "@/server/content/repository";
 
 /**
@@ -100,9 +101,7 @@ export default async function HomePage() {
               id="trending-heading"
               className="flex items-center gap-1.5 border-b border-navy-100 bg-navy-50/60 px-4 py-2.5 text-[11px] font-extrabold tracking-[0.14em] text-navy-900 uppercase"
             >
-              <span aria-hidden="true" className="text-signal-600">
-                &#9650;
-              </span>
+              <TrendingIcon className="h-3.5 w-3.5 text-signal-600" />
               Trending Now
             </h2>
             {data.mostRead.length > 0 ? (
@@ -136,9 +135,7 @@ export default async function HomePage() {
               id="newsletter-heading"
               className="flex items-center gap-2 text-[13px] font-bold text-white"
             >
-              <span aria-hidden="true" className="text-signal-500">
-                &#9993;
-              </span>
+              <MailIcon className="h-4 w-4 text-signal-500" />
               Newsletter Signup
             </h2>
             <p className="mt-1 text-[12px] text-navy-300">
@@ -159,9 +156,7 @@ export default async function HomePage() {
             id="picks-heading"
             className="flex items-center gap-2 border-b border-navy-100 px-4 py-3 text-[11px] font-extrabold tracking-[0.14em] text-navy-900 uppercase"
           >
-            <span aria-hidden="true" className="text-signal-600">
-              &#9733;
-            </span>
+            <StarIcon className="h-3.5 w-3.5 text-signal-600" />
             Editor&apos;s Picks
           </h2>
           <div className="grid gap-5 p-4 sm:grid-cols-2 lg:grid-cols-4">

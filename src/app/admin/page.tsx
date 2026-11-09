@@ -3,6 +3,17 @@ import Link from "next/link";
 import { Badge, DataTable, LinkButton, PageHeader, Panel, StatCard } from "@/components/admin/ui";
 import { statusTone } from "@/components/ui/status-tone";
 import { NotConfigured } from "@/components/ui/states";
+import {
+  ChartIcon,
+  ClockIcon,
+  FileTextIcon,
+  MailIcon,
+  MediaIcon,
+  PencilIcon,
+  SectionsIcon,
+  UploadIcon,
+  UsersIcon,
+} from "@/components/ui/icons";
 import { getDashboardStats } from "@/server/admin/stats";
 import { tryAdminSession } from "@/server/auth/session";
 
@@ -42,13 +53,24 @@ const DENIAL_COPY = {
   },
 } as const;
 
-const QUICK_ACTIONS = [
-  { href: "/admin/articles/new", label: "Add News", icon: "✎" },
-  { href: "/admin/categories", label: "Categories", icon: "❏" },
-  { href: "/admin/analytics", label: "Analytics", icon: "▲" },
-  { href: "/admin/users", label: "Manage Users", icon: "◉" },
-  { href: "/admin/media", label: "Media Library", icon: "▤" },
-  { href: "/admin/deployments", label: "Deploy Site", icon: "⇪" },
+/**
+ * Quick actions.
+ *
+ * The icons are inline SVG, not characters. A pencil and an envelope drawn as Unicode render
+ * as empty boxes on any system whose font lacks the glyph, which makes the tile look broken
+ * rather than plain.
+ */
+const QUICK_ACTIONS: {
+  href: string;
+  label: string;
+  Icon: (props: { className?: string }) => React.ReactElement;
+}[] = [
+  { href: "/admin/articles/new", label: "Add News", Icon: PencilIcon },
+  { href: "/admin/categories", label: "Categories", Icon: SectionsIcon },
+  { href: "/admin/analytics", label: "Analytics", Icon: ChartIcon },
+  { href: "/admin/users", label: "Manage Users", Icon: UsersIcon },
+  { href: "/admin/media", label: "Media Library", Icon: MediaIcon },
+  { href: "/admin/deployments", label: "Deploy Site", Icon: UploadIcon },
 ];
 
 function todayLabel(): string {
@@ -130,7 +152,10 @@ export default async function AdminDashboardPage() {
                   ? `Not measured - ${metric.note ?? "no verified data source"}`
                   : "Read from the database"
               }
-              icon={METRIC_ICONS[metric.key]}
+              icon={(() => {
+                const MetricIcon = METRIC_ICONS[metric.key];
+                return MetricIcon ? <MetricIcon className="h-4 w-4" /> : null;
+              })()}
             />
           ))}
         </div>
@@ -214,9 +239,7 @@ export default async function AdminDashboardPage() {
                     href={action.href}
                     className="flex h-full flex-col items-center justify-center gap-1.5 rounded-md bg-navy-50 px-2 py-4 text-center transition-colors hover:bg-navy-100 hover:text-signal-700"
                   >
-                    <span aria-hidden="true" className="text-[17px] text-navy-700">
-                      {action.icon}
-                    </span>
+                    <action.Icon className="h-[18px] w-[18px] text-navy-700" />
                     <span className="text-[11.5px] leading-tight font-bold text-navy-800">
                       {action.label}
                     </span>
@@ -270,10 +293,10 @@ export default async function AdminDashboardPage() {
   );
 }
 
-const METRIC_ICONS: Record<string, string> = {
-  articles: "▤",
-  published: "◉",
-  drafts: "✎",
-  subscribers: "✉",
-  pending_review: "⏱",
+const METRIC_ICONS: Record<string, (props: { className?: string }) => React.ReactElement> = {
+  articles: FileTextIcon,
+  published: MediaIcon,
+  drafts: PencilIcon,
+  subscribers: MailIcon,
+  pending_review: ClockIcon,
 };

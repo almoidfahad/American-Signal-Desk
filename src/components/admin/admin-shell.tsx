@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Wordmark } from "@/components/brand";
+import { ExternalIcon } from "@/components/ui/icons";
 
 export interface NavItem {
   href: string;
@@ -112,7 +113,7 @@ export function AdminShell({
               href="/"
               className="hidden items-center gap-1.5 rounded-md bg-signal-600 px-3 py-1.5 text-[12px] font-bold text-white hover:bg-signal-700 sm:flex"
             >
-              <span aria-hidden="true">&#8599;</span>
+              <ExternalIcon className="h-3.5 w-3.5" />
               View Live Site
             </Link>
             {session ? (

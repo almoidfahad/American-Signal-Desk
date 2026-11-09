@@ -237,7 +237,7 @@ export function findTransition(from: string, to: string): TransitionRule | undef
 export function canTransition(from: string, to: string): TransitionResult {
   const rule = findTransition(from, to);
   if (!rule) {
-    return { ok: false, reason: `Illegal transition: ${from} → ${to}` };
+    return { ok: false, reason: `Illegal transition: ${from} to ${to}` };
   }
   return { ok: true, rule };
 }

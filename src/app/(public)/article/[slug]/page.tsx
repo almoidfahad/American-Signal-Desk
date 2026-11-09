@@ -201,7 +201,7 @@ export default async function ArticlePage({ params }: PageProps) {
             className="mt-6 flex aspect-[16/7] w-full items-center justify-center rounded-lg bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900"
           >
             <span className="text-xs font-semibold tracking-widest text-navy-300 uppercase">
-              {article.categoryName} — artwork pending
+              Artwork pending
             </span>
           </div>
         )}
