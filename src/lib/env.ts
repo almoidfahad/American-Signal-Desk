@@ -27,7 +27,9 @@ export const publicEnvSchema = z.object({
 /** Server-only. Never imported from a client component. */
 export const serverEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  APP_ENV: z.enum(["development", "staging", "production"]).default("development"),
+  // APP_ENV was declared and read nowhere. Removed for the same reason as
+  // SESSION_COOKIE_NAME: a setting nobody honours is a setting that lies.
+
 
   // --- Supabase -------------------------------------------------------------
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
@@ -39,8 +41,10 @@ export const serverEnvSchema = z.object({
   // --- Auth ----------------------------------------------------------------
   /** Set true to require a verified MFA factor before admin access is granted. */
   REQUIRE_MFA_FOR_ADMIN: booleanish,
-  /** Cookie name for the server session; overridable per environment. */
-  SESSION_COOKIE_NAME: z.string().min(1).default("asd_session"),
+  // SESSION_COOKIE_NAME was declared here and read nowhere: supabase-js SSR owns the
+  // session cookie names ("sb-<ref>-auth-token"), so a setting that claims to override
+  // them was simply false. Removed rather than left as a knob that does nothing — the
+  // failure mode this whole codebase is written against.
 
   // --- Optional integrations (absent = feature disabled, never faked) -------
   AI_PROVIDER_API_KEY: z.string().min(1).optional(),
