@@ -1,0 +1,69 @@
+name: Queue tick
+
+# Drives the job queue: scheduled publishing, email outbox delivery attempts, and the
+# periodic purges. The endpoint does exactly one tick and returns - the same tick() a
+# long-lived `npm run worker` runs in a loop - so there is one implementation of the
+# behaviour and two ways to drive it.
+#
+# Honesty rules this workflow follows:
+#   - With no CRON_SECRET configured it emits a WARNING and does nothing. A green run
+#     never claims the queue moved; the warning says plainly that it has no driver.
+#   - A failed call is a hard failure with the reason attached: 401 means the secret
+#     does not match the site's CRON_SECRET, 503 means the site has no database.
+#   - The secret is never echoed, only sent as a header.
+#
+# Setup: put the same CRON_SECRET (16+ characters) in this repository's Actions secrets
+# and in the Vercel project's environment variables. Scheduled runs only fire on the
+# default branch; GitHub may delay them under load, so five minutes is the practical
+# granularity here. For minute-level scheduling, run `npm run worker` on an always-on
+# host instead.
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+# Least privilege: this workflow only calls a URL; it needs nothing from the repository.
+permissions:
+  contents: read
+
+concurrency:
+  group: queue-tick
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    name: Run one queue tick
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: POST /api/cron/tick
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ vars.SITE_URL || 'https://american-signal-desk.vercel.app' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::warning title=Queue tick skipped::CRON_SECRET is not configured, so the queue has no driver and scheduled articles will not publish. Add CRON_SECRET (16+ characters) to this repository's Actions secrets and to the Vercel project environment."
+            echo "## Queue tick skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo "CRON_SECRET is not configured. Nothing ran - the queue has **no driver** and scheduled articles will not publish." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          code=$(curl -sS -o /tmp/tick.json -w "%{http_code}" -X POST "$SITE_URL/api/cron/tick" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            --max-time 120) || code="curl-error"
+
+          echo "HTTP $code"
+          cat /tmp/tick.json 2>/dev/null || true
+          echo
+
+          if [ "$code" != "200" ]; then
+            echo "::error title=Queue tick failed::POST $SITE_URL/api/cron/tick returned $code. 401: CRON_SECRET does not match the value on the site. 503: the site has no database configured. curl-error: the site was unreachable."
+            exit 1
+          fi
+
+          echo "## Queue tick ran" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/tick.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
