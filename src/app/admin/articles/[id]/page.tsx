@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { Badge, PageHeader, Panel } from "@/components/admin/ui";
+import { statusTone } from "@/components/ui/status-tone";
 import { ArticleForm } from "@/components/admin/article-form";
 import {
   TransitionControls,
   type AvailableTransition,
 } from "@/components/admin/transition-controls";
-import { ARTICLE_STATUS_META, statusClass } from "@/components/ui/styles";
-import { getAdminSession } from "@/server/auth/session";
+import { ARTICLE_STATUS_META } from "@/components/ui/styles";
+import { requireAdminPage } from "@/server/admin/guard";
 import { permissionsForRoles, type Actor } from "@/server/authz/permissions";
 import { getArticleForEditing, listArticlesForActor } from "@/server/editorial/service";
 import {
@@ -18,26 +20,32 @@ import {
 import { transitionArticleAction, updateArticleAction } from "../actions";
 import { listCategoriesForAdmin } from "@/server/admin/categories";
 
-export const metadata: Metadata = { title: "লেখা সম্পাদনা" };
+export const metadata: Metadata = { title: "Edit Article" };
 export const dynamic = "force-dynamic";
 
 const LABELS: Record<ArticleStatus, string> = {
-  draft: "ড্রাফটে ফিরিয়ে আনুন",
-  pending_review: "রিভিউয়ের জন্য পাঠান",
-  changes_requested: "পরিবর্তন চান",
-  approved: "অনুমোদন করুন",
-  scheduled: "শিডিউল করুন",
-  published: "প্রকাশ করুন",
-  rejected: "প্রত্যাখ্যান করুন",
-  archived: "আর্কাইভ করুন",
-  trash: "ট্র্যাশে সরান",
+  draft: "Return to draft",
+  pending_review: "Send for review",
+  changes_requested: "Request changes",
+  approved: "Approve",
+  scheduled: "Schedule",
+  published: "Publish",
+  rejected: "Reject",
+  archived: "Archive",
+  trash: "Move to trash",
 };
 
+/**
+ * Confirmations for actions a reasonable person could regret. Publishing puts words in front
+ * of the public; archiving removes a live page; trash and rejection change what the author
+ * sees. Routine forward steps inside the review chain are not confirmed - confirming
+ * everything trains people to click through everything.
+ */
 const CONFIRM: Partial<Record<ArticleStatus, string>> = {
-  published: "এই লেখাটি এখনই পাবলিক সাইটে প্রকাশিত হবে। নিশ্চিত?",
-  archived: "লেখাটি পাবলিক সাইট থেকে সরে যাবে। নিশ্চিত?",
-  trash: "লেখাটি ট্র্যাশে যাবে। পরে পুনরুদ্ধার করা যাবে। নিশ্চিত?",
-  rejected: "লেখাটি প্রত্যাখ্যাত হিসেবে চিহ্নিত হবে। নিশ্চিত?",
+  published: "This publishes immediately to the public site. Continue?",
+  archived: "This removes the article from the public site. Continue?",
+  trash: "This moves the article to trash. It can be restored later. Continue?",
+  rejected: "This marks the article rejected. Continue?",
 };
 
 /**
@@ -46,7 +54,11 @@ const CONFIRM: Partial<Record<ArticleStatus, string>> = {
  * Mirrors the service-layer rules so the UI cannot offer an action that will be refused.
  * Authorization itself still happens on the server; this only prevents a confusing click.
  */
-function availableTransitions(actor: Actor, from: ArticleStatus, ownerId: string | null): AvailableTransition[] {
+function availableTransitions(
+  actor: Actor,
+  from: ArticleStatus,
+  ownerId: string | null,
+): AvailableTransition[] {
   const granted = permissionsForRoles(actor.roles);
   const list: AvailableTransition[] = [];
 
@@ -62,11 +74,15 @@ function availableTransitions(actor: Actor, from: ArticleStatus, ownerId: string
 
     if (!allowed) continue;
 
-    // Publishing from 'approved' requires a real human decision; keep the wording explicit.
     list.push({
       to: rule.to,
       label: LABELS[rule.to] ?? rule.label,
-      tone: rule.to === "published" ? "primary" : rule.to === "trash" || rule.to === "rejected" ? "danger" : "secondary",
+      tone:
+        rule.to === "published"
+          ? "primary"
+          : rule.to === "trash" || rule.to === "rejected"
+            ? "danger"
+            : "secondary",
       confirm: CONFIRM[rule.to],
     });
   }
@@ -75,8 +91,9 @@ function availableTransitions(actor: Actor, from: ArticleStatus, ownerId: string
 }
 
 export default async function EditArticlePage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await getAdminSession();
-  if (!session) redirect("/admin/login");
+  const access = await requireAdminPage();
+  if (!access.ok) return access.node;
+  const session = access.session;
 
   const { id } = await params;
   const actor: Actor = { userId: session.userId, roles: session.roles };
@@ -87,10 +104,13 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
     if (result.code === "NOT_FOUND") notFound();
     return (
       <div className="mx-auto max-w-lg py-16">
-        <h1 className="text-xl font-bold text-navy-900">লেখাটি খোলা যাচ্ছে না</h1>
-        <p className="mt-2 text-sm text-navy-600">{result.message}</p>
-        <Link href="/admin/articles" className="mt-4 inline-block text-sm font-semibold underline">
-          তালিকায় ফিরে যান
+        <h1 className="text-xl font-bold text-navy-900">This article cannot be opened</h1>
+        <p className="mt-2 text-[13px] text-navy-600">{result.message}</p>
+        <Link
+          href="/admin/articles"
+          className="mt-4 inline-block text-[13px] font-semibold text-navy-800 underline"
+        >
+          Back to the list
         </Link>
       </div>
     );
@@ -104,29 +124,37 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
   const categories = await listCategoriesForAdmin();
   const selectedCategoryId = categories.find((c) => c.id === article.categoryId)?.id ?? null;
 
-  // Reviewers benefit from seeing the queue they are working through.
-  const queue =
-    session.roles.includes("editor") || session.roles.includes("admin") || session.roles.includes("super_admin")
-      ? await listArticlesForActor(actor, { status: "pending_review", limit: 5 })
-      : null;
+  const isReviewer =
+    session.roles.includes("editor") ||
+    session.roles.includes("admin") ||
+    session.roles.includes("super_admin");
+
+  const queue = isReviewer
+    ? await listArticlesForActor(actor, { status: "pending_review", limit: 5 })
+    : null;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-3">
+    <div className="grid gap-5 xl:grid-cols-3">
       <div className="xl:col-span-2">
-        <nav aria-label="Breadcrumb" className="text-xs text-navy-500">
-          <Link href="/admin/articles" className="hover:underline">
-            সংবাদ ব্যবস্থাপনা
-          </Link>{" "}
-          / সম্পাদনা
+        <nav aria-label="Breadcrumb" className="mb-2 text-[11.5px] text-navy-500">
+          <Link href="/admin/articles" className="hover:text-navy-900 hover:underline">
+            News Management
+          </Link>
+          <span aria-hidden="true" className="mx-1.5">
+            /
+          </span>
+          <span aria-current="page">Edit</span>
         </nav>
 
-        <div className="mt-1 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-extrabold text-navy-900">লেখা সম্পাদনা</h1>
-          <span className={statusClass(meta?.tone ?? "neutral")}>{meta?.label ?? article.status}</span>
+        <div className="mb-4 flex flex-wrap items-center gap-2.5">
+          <h1 className="text-[21px] leading-tight font-extrabold tracking-tight text-navy-900">
+            Edit Article
+          </h1>
+          <Badge tone={statusTone(article.status)}>{meta?.label ?? article.status}</Badge>
         </div>
-        <p className="mt-1 font-mono text-xs text-navy-500">/{article.slug}</p>
+        <p className="-mt-2 mb-4 font-mono text-[11px] text-navy-400">/article/{article.slug}</p>
 
-        <div className="mt-6 rounded-lg bg-white p-5 ring-1 ring-navy-100">
+        <Panel bodyClassName="p-5">
           <ArticleForm
             mode="edit"
             action={updateArticleAction}
@@ -140,19 +168,16 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
               heroImageUrl: null,
               heroImageAlt: null,
             }}
-            categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+            categories={categories.map((category) => ({ id: category.id, name: category.name }))}
             readOnly={!editable}
           />
-        </div>
+        </Panel>
       </div>
 
-      <aside className="space-y-5">
-        <section aria-labelledby="actions-heading" className="rounded-lg bg-white p-4 ring-1 ring-navy-100">
-          <h2 id="actions-heading" className="text-sm font-bold text-navy-900">
-            পরবর্তী ধাপ
-          </h2>
-          <p className="mt-1 text-xs text-navy-500">
-            প্রতিটি ধাপ সার্ভারে অনুমোদিত হয় এবং অডিট লগে রেকর্ড হয়।
+      <aside className="space-y-4">
+        <Panel title="Next step" bodyClassName="p-4">
+          <p className="text-[11.5px] leading-relaxed text-navy-500">
+            Every transition is authorised on the server and written to the audit log.
           </p>
           <div className="mt-3">
             <TransitionControls
@@ -161,54 +186,50 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
               action={transitionArticleAction}
             />
           </div>
-        </section>
+        </Panel>
 
-        <section aria-labelledby="meta-heading" className="rounded-lg bg-white p-4 ring-1 ring-navy-100">
-          <h2 id="meta-heading" className="text-sm font-bold text-navy-900">
-            তথ্য
-          </h2>
-          <dl className="mt-2 space-y-2 text-xs">
-            <div className="flex justify-between gap-3">
-              <dt className="text-navy-500">আপনার ভূমিকা</dt>
-              <dd className="font-medium text-navy-900">{session.roles.join(", ") || "—"}</dd>
-            </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-navy-500">মালিকানা</dt>
-              <dd className="font-medium text-navy-900">
-                {article.createdBy === session.userId ? "আপনার নিজের" : "অন্য লেখকের"}
+        <Panel title="Details" bodyClassName="p-4">
+          <dl className="space-y-2.5 text-[12px]">
+            <div className="flex items-start justify-between gap-3">
+              <dt className="text-navy-500">Your role</dt>
+              <dd className="text-right font-semibold text-navy-900">
+                {session.roles.join(", ") || "-"}
               </dd>
             </div>
-            <div className="flex justify-between gap-3">
-              <dt className="text-navy-500">প্রকাশের সময়</dt>
-              <dd className="font-medium text-navy-900">
+            <div className="flex items-start justify-between gap-3">
+              <dt className="text-navy-500">Ownership</dt>
+              <dd className="text-right font-semibold text-navy-900">
+                {article.createdBy === session.userId ? "Yours" : "Another author's"}
+              </dd>
+            </div>
+            <div className="flex items-start justify-between gap-3">
+              <dt className="text-navy-500">Publish time</dt>
+              <dd className="text-right font-semibold text-navy-900 tabular">
                 {article.publishAt
-                  ? new Intl.DateTimeFormat("bn-BD", {
+                  ? new Intl.DateTimeFormat("en-US", {
                       dateStyle: "medium",
                       timeStyle: "short",
-                      timeZone: "Asia/Dhaka",
                     }).format(new Date(article.publishAt))
-                  : "—"}
+                  : "-"}
+              </dd>
+            </div>
+            <div className="flex items-start justify-between gap-3">
+              <dt className="text-navy-500">Editable</dt>
+              <dd className="text-right font-semibold text-navy-900">
+                {editable ? "Yes, in this state" : "No - return to draft first"}
               </dd>
             </div>
           </dl>
-          {editable && (
-            <p className="mt-3 border-t border-navy-100 pt-2 text-[11px] leading-relaxed text-navy-500">
-              এই স্ট্যাটাসে লেখা সম্পাদনাযোগ্য।
-            </p>
-          )}
-        </section>
+        </Panel>
 
         {queue?.ok && queue.data.items.length > 0 && (
-          <section aria-labelledby="queue-heading" className="rounded-lg bg-white p-4 ring-1 ring-navy-100">
-            <h2 id="queue-heading" className="text-sm font-bold text-navy-900">
-              রিভিউয়ের অপেক্ষায়
-            </h2>
-            <ul className="mt-2 divide-y divide-navy-50">
+          <Panel title="Waiting for review" bodyClassName="p-4">
+            <ul className="divide-y divide-navy-50">
               {queue.data.items.map((item) => (
-                <li key={item.id} className="py-2">
+                <li key={item.id} className="py-2 first:pt-0">
                   <Link
                     href={`/admin/articles/${item.id}`}
-                    className="text-[13px] font-medium text-navy-800 hover:text-signal-700 hover:underline"
+                    className="line-clamp-2 text-[12.5px] font-medium text-navy-800 hover:text-signal-700 hover:underline"
                   >
                     {item.title}
                   </Link>
@@ -217,11 +238,11 @@ export default async function EditArticlePage({ params }: { params: Promise<{ id
             </ul>
             <Link
               href="/admin/articles/review"
-              className="mt-2 inline-block text-xs font-semibold text-navy-700 hover:underline"
+              className="mt-2 inline-block text-[11.5px] font-bold text-signal-700 hover:underline"
             >
-              পুরো কিউ দেখুন →
+              Open the full queue
             </Link>
-          </section>
+          </Panel>
         )}
       </aside>
     </div>

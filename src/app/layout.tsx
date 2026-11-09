@@ -33,12 +33,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-US">
-      <body className="min-h-dvh antialiased">
-        <a href="#main" className="skip-link">
-          Skip to main content
-        </a>
-        {children}
-      </body>
+      <body className="min-h-dvh antialiased">{children}</body>
     </html>
   );
 }

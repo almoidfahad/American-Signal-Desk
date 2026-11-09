@@ -22,7 +22,7 @@ export function MfaForm() {
 
     const trimmed = code.trim();
     if (!/^\d{6}$/.test(trimmed)) {
-      setError("৬-সংখ্যার কোড দিন।");
+      setError("Enter the 6-digit code.");
       return;
     }
 
@@ -35,14 +35,14 @@ export function MfaForm() {
 
       const { data: factors, error: factorError } = await supabase.auth.mfa.listFactors();
       if (factorError) {
-        setError("যাচাই করা যাচ্ছে না। আবার চেষ্টা করুন।");
+        setError("Verification is unavailable right now. Try again.");
         return;
       }
 
       const totp = factors?.totp?.[0];
       if (!totp) {
         setError(
-          "এই অ্যাকাউন্টে কোনো TOTP ফ্যাক্টর নেই। প্রথমে MFA সেটআপ সম্পন্ন করুন অথবা সুপার অ্যাডমিনের সাথে যোগাযোগ করুন।",
+          "This account has no TOTP factor enrolled. Complete MFA setup first, or ask a Super Admin to help.",
         );
         return;
       }
@@ -54,14 +54,14 @@ export function MfaForm() {
 
       if (verifyError) {
         // Generic message: do not distinguish "wrong code" from "expired challenge".
-        setError("কোডটি সঠিক নয় বা সময় শেষ হয়ে গেছে।");
+        setError("That code is not valid, or it has expired.");
         return;
       }
 
       router.push("/admin");
       router.refresh();
     } catch {
-      setError("সাময়িকভাবে সমস্যা হচ্ছে। আবার চেষ্টা করুন।");
+      setError("Something went wrong. Try again.");
     } finally {
       setPending(false);
     }
@@ -71,7 +71,7 @@ export function MfaForm() {
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
       <div>
         <label htmlFor="code" className="block text-sm font-semibold text-navy-900">
-          যাচাই কোড
+          Verification code
         </label>
         <input
           id="code"
@@ -91,7 +91,7 @@ export function MfaForm() {
           autoFocus
         />
         <p id="mfa-help" className="mt-1 text-xs text-navy-500">
-          কোড প্রতি ৩০ সেকেন্ডে বদলায়।
+          The code changes every 30 seconds.
         </p>
       </div>
 
@@ -110,7 +110,7 @@ export function MfaForm() {
         disabled={pending || code.length !== 6}
         className="h-11 w-full rounded-md bg-signal-600 text-sm font-bold text-white hover:bg-signal-700 disabled:opacity-60"
       >
-        {pending ? "যাচাই হচ্ছে…" : "যাচাই করুন"}
+        {pending ? "Verifying..." : "Verify"}
       </button>
     </form>
   );

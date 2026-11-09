@@ -1,33 +1,42 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { ARTICLE_STATUS_META, buttonClass, statusClass } from "@/components/ui/styles";
+import { Badge, DataTable, LinkButton, PageHeader, Panel, TableEmpty } from "@/components/admin/ui";
+import { statusTone } from "@/components/ui/status-tone";
 import { NotConfigured } from "@/components/ui/states";
-import { getAdminSession } from "@/server/auth/session";
 import { can } from "@/server/authz/permissions";
+import { requireAdminPage } from "@/server/admin/guard";
 import { listArticlesForActor } from "@/server/editorial/service";
 import { ARTICLE_STATUSES, type ArticleStatus } from "@/server/editorial/workflow";
+import { ARTICLE_STATUS_META } from "@/components/ui/styles";
 
-export const metadata: Metadata = { title: "সংবাদ ব্যবস্থাপনা" };
+export const metadata: Metadata = { title: "News Management" };
 export const dynamic = "force-dynamic";
 
+/**
+ * Article list.
+ *
+ * This page lists only what the signed-in actor may see: the service layer narrows the query
+ * by permission, and RLS narrows it again. The status filter is a convenience, not a
+ * security boundary - filtering by "published" does not grant the ability to read drafts.
+ */
+
 function formatDate(iso: string | null): string {
-  if (!iso) return "—";
-  return new Intl.DateTimeFormat("bn-BD", {
-    day: "numeric",
+  if (!iso) return "-";
+  return new Intl.DateTimeFormat("en-US", {
     month: "short",
+    day: "numeric",
     year: "numeric",
-    timeZone: "Asia/Dhaka",
   }).format(new Date(iso));
 }
 
 export default async function ArticlesListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ status?: string; q?: string }>;
 }) {
-  const session = await getAdminSession();
-  if (!session) redirect("/admin/login");
+  const access = await requireAdminPage();
+  if (!access.ok) return access.node;
+  const session = access.session;
 
   const actor = { userId: session.userId, roles: session.roles };
   const { status: statusParam } = await searchParams;
@@ -37,136 +46,142 @@ export default async function ArticlesListPage({
       : "all";
 
   const result = await listArticlesForActor(actor, { status: statusFilter, limit: 25 });
-
   const configured = result.ok || result.code !== "NOT_CONFIGURED";
+  const canSeeEverything = can(actor, "article.review") || can(actor, "article.edit.any");
 
   return (
     <div>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold text-navy-900">সংবাদ ব্যবস্থাপনা</h1>
-          <p className="mt-1 text-sm text-navy-600">
-            {can(actor, "article.review") || can(actor, "article.edit.any")
-              ? "সব লেখা দেখছেন।"
-              : "শুধু আপনার নিজের লেখা দেখছেন।"}
-          </p>
-        </div>
-        {can(actor, "article.create") && (
-          <Link href="/admin/articles/new" className={buttonClass("primary", "sm")}>
-            + নতুন লেখা
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title="News Management"
+        description={
+          canSeeEverything
+            ? "All articles in the newsroom."
+            : "Your own articles. Reviewers can see the whole queue."
+        }
+        actions={
+          can(actor, "article.create") ? (
+            <LinkButton href="/admin/articles/new">+ Add News</LinkButton>
+          ) : null
+        }
+      />
 
-      <nav aria-label="স্ট্যাটাস অনুযায়ী ফিল্টার" className="mt-4 flex flex-wrap gap-2">
+      {/* Status filter */}
+      <nav aria-label="Filter by status" className="mb-4 flex flex-wrap gap-1.5">
         <Link
           href="/admin/articles"
-          className={statusClass(statusFilter === "all" ? "info" : "neutral")}
           aria-current={statusFilter === "all" ? "page" : undefined}
+          className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-bold ring-1 transition-colors ${
+            statusFilter === "all"
+              ? "bg-navy-900 text-white ring-navy-900"
+              : "bg-white text-navy-700 ring-navy-200 hover:bg-navy-50"
+          }`}
         >
-          সব
+          All
         </Link>
-        {ARTICLE_STATUSES.map((s) => {
-          const meta = ARTICLE_STATUS_META[s];
+        {ARTICLE_STATUSES.map((status) => {
+          const meta = ARTICLE_STATUS_META[status];
+          const active = statusFilter === status;
           return (
             <Link
-              key={s}
-              href={`/admin/articles?status=${s}`}
-              className={statusClass(statusFilter === s ? "info" : "neutral")}
-              aria-current={statusFilter === s ? "page" : undefined}
+              key={status}
+              href={`/admin/articles?status=${status}`}
+              aria-current={active ? "page" : undefined}
+              className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-bold ring-1 transition-colors ${
+                active
+                  ? "bg-navy-900 text-white ring-navy-900"
+                  : "bg-white text-navy-700 ring-navy-200 hover:bg-navy-50"
+              }`}
             >
-              {meta?.label ?? s}
+              {meta?.label ?? status}
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-5">
-        {!configured ? (
-          <NotConfigured
-            feature="লেখার তালিকা"
-            requiredEnv={["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]}
-            detail="ডেটাবেস কনফিগার করা নেই, তাই কোনো লেখা নেই — এটি খালি সংবাদপত্র নয়, কনফিগারেশনের ঘাটতি।"
-          />
-        ) : !result.ok ? (
-          <p className="rounded-md bg-signal-50 px-4 py-3 text-sm text-signal-800 ring-1 ring-signal-300">
-            {result.message}
-          </p>
-        ) : result.data.items.length === 0 ? (
-          <div className="rounded-lg bg-white px-6 py-12 text-center ring-1 ring-navy-100">
-            <p className="text-base font-semibold text-navy-900">এই ফিল্টারে কোনো লেখা নেই</p>
-            <p className="mt-1 text-sm text-navy-600">
-              {statusFilter === "all"
-                ? "প্রথম লেখাটি তৈরি করে শুরু করুন।"
-                : "অন্য একটি স্ট্যাটাস ফিল্টার দেখুন।"}
+      {!configured ? (
+        <NotConfigured
+          feature="Article list"
+          requiredEnv={["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]}
+          detail="No database is configured, so there are no articles to list. This is a configuration gap, not an empty newsroom."
+        />
+      ) : !result.ok ? (
+        <p
+          role="alert"
+          className="rounded-md bg-signal-50 px-4 py-3 text-[13px] text-signal-800 ring-1 ring-signal-300"
+        >
+          {result.message}
+        </p>
+      ) : (
+        <Panel bodyClassName="">
+          <DataTable
+            caption="Articles"
+            head={
+              <>
+                <th scope="col" className="px-4 py-2.5">
+                  Title
+                </th>
+                <th scope="col" className="px-4 py-2.5">
+                  Status
+                </th>
+                <th scope="col" className="px-4 py-2.5">
+                  Last updated
+                </th>
+                <th scope="col" className="px-4 py-2.5">
+                  Actions
+                </th>
+              </>
+            }
+          >
+            {result.data.items.length === 0 ? (
+              <TableEmpty colSpan={4}>
+                {statusFilter === "all"
+                  ? "No articles yet. Start by creating the first one."
+                  : "No articles with this status."}
+              </TableEmpty>
+            ) : (
+              result.data.items.map((article) => {
+                const meta = ARTICLE_STATUS_META[article.status];
+                return (
+                  <tr key={article.id} className="hover:bg-navy-50/60">
+                    <td className="max-w-[360px] px-4 py-3">
+                      <Link
+                        href={`/admin/articles/${article.id}`}
+                        className="line-clamp-1 font-semibold text-navy-900 hover:text-signal-700 hover:underline"
+                      >
+                        {article.title}
+                      </Link>
+                      <p className="mt-0.5 font-mono text-[10.5px] text-navy-400">
+                        /{article.slug}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge tone={statusTone(article.status)}>
+                        {meta?.label ?? article.status}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-navy-500 tabular">
+                      {formatDate(article.updatedAt)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/admin/articles/${article.id}`}
+                        className="text-[11.5px] font-bold text-navy-700 hover:text-signal-700 hover:underline"
+                      >
+                        Open
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </DataTable>
+          {result.data.truncated && (
+            <p className="border-t border-navy-100 px-4 py-2 text-[11.5px] text-navy-500">
+              Showing the first 25 articles. There are more.
             </p>
-            {can(actor, "article.create") && (
-              <Link href="/admin/articles/new" className={buttonClass("secondary", "sm", "mt-4")}>
-                নতুন লেখা তৈরি করুন
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-lg bg-white ring-1 ring-navy-100">
-            <table className="w-full text-left text-sm">
-              <caption className="sr-only">লেখার তালিকা</caption>
-              <thead className="bg-navy-50 text-[11px] tracking-wide text-navy-600 uppercase">
-                <tr>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">
-                    শিরোনাম
-                  </th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">
-                    স্ট্যাটাস
-                  </th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">
-                    সর্বশেষ পরিবর্তন
-                  </th>
-                  <th scope="col" className="px-4 py-2.5 font-semibold">
-                    কাজ
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-navy-50">
-                {result.data.items.map((a) => {
-                  const meta = ARTICLE_STATUS_META[a.status];
-                  return (
-                    <tr key={a.id} className="hover:bg-navy-50/40">
-                      <td className="max-w-md px-4 py-3">
-                        <Link
-                          href={`/admin/articles/${a.id}`}
-                          className="font-medium text-navy-900 hover:text-signal-700 hover:underline"
-                        >
-                          {a.title}
-                        </Link>
-                        <p className="mt-0.5 font-mono text-[11px] text-navy-400">/{a.slug}</p>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={statusClass(meta?.tone ?? "neutral")}>
-                          {meta?.label ?? a.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-navy-500">{formatDate(a.updatedAt)}</td>
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/admin/articles/${a.id}`}
-                          className="text-xs font-semibold text-navy-700 hover:underline"
-                        >
-                          খুলুন →
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {result.data.truncated && (
-              <p className="border-t border-navy-100 px-4 py-2 text-xs text-navy-500">
-                প্রথম ২৫টি লেখা দেখানো হচ্ছে। আরও আছে।
-              </p>
-            )}
-          </div>
-        )}
-      </div>
+          )}
+        </Panel>
+      )}
     </div>
   );
 }

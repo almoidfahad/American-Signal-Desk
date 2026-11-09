@@ -23,7 +23,7 @@ export function ResetForm() {
 
     const parsed = emailSchema.safeParse(email);
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "সঠিক ইমেইল দিন।");
+      setError(parsed.error.issues[0]?.message ?? "Enter a valid email address.");
       return;
     }
 
@@ -41,7 +41,7 @@ export function ResetForm() {
       // Same message whether or not the account exists.
       setSent(true);
     } catch {
-      setError("সাময়িকভাবে সমস্যা হচ্ছে। আবার চেষ্টা করুন।");
+      setError("Something went wrong. Try again.");
     } finally {
       setPending(false);
     }
@@ -50,10 +50,10 @@ export function ResetForm() {
   if (sent) {
     return (
       <div role="status">
-        <p className="text-sm font-semibold text-navy-900">অনুরোধ গ্রহণ করা হয়েছে</p>
+        <p className="text-sm font-semibold text-navy-900">Request received</p>
         <p className="mt-2 text-sm text-navy-600">
-          যদি এই ইমেইলে কোনো অ্যাকাউন্ট থাকে, একটি রিসেট লিংক পাঠানো হয়েছে। লিংকটি কিছুক্ষণের
-          মধ্যেই আসবে; না এলে স্প্যাম ফোল্ডার দেখুন।
+          If an account exists for that address, a reset link has been sent. It should arrive
+          shortly; check your spam folder if it does not.
         </p>
       </div>
     );
@@ -63,7 +63,7 @@ export function ResetForm() {
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
       <div>
         <label htmlFor="reset-email" className="block text-sm font-semibold text-navy-900">
-          ইমেইল ঠিকানা
+          Email address
         </label>
         <input
           id="reset-email"
@@ -94,7 +94,7 @@ export function ResetForm() {
         disabled={pending}
         className="h-11 w-full rounded-md bg-signal-600 text-sm font-bold text-white hover:bg-signal-700 disabled:opacity-60"
       >
-        {pending ? "পাঠানো হচ্ছে…" : "রিসেট লিংক পাঠান"}
+        {pending ? "Sending..." : "Send reset link"}
       </button>
     </form>
   );

@@ -16,27 +16,27 @@ import { httpUrlSchema } from "@/lib/validation/url";
 const slug = z
   .string()
   .trim()
-  .min(3, "স্লাগ অন্তত ৩ অক্ষরের হতে হবে।")
-  .max(120, "স্লাগ খুব বড়।")
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "স্লাগে শুধু ছোট হাতের অক্ষর, সংখ্যা ও হাইফেন ব্যবহার করুন।")
+  .min(3, "Slug must be at least 3 characters.")
+  .max(120, "Slug is too long.")
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use only lowercase letters, numbers and hyphens in the slug.")
   // Reserved prefixes would collide with real application routes.
   .refine((v) => !["admin", "api", "auth", "_next", "sitemap", "robots"].includes(v.split("-")[0] ?? ""), {
-    message: "এই স্লাগটি সংরক্ষিত শব্দের সাথে মিলে যায়।",
+    message: "This slug is a reserved word.",
   });
 
 export const articleInputSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(5, "শিরোনাম অন্তত ৫ অক্ষরের হতে হবে।")
-    .max(300, "শিরোনাম ৩০০ অক্ষরের বেশি হতে পারবে না।"),
+    .min(5, "Headline must be at least 5 characters.")
+    .max(300, "Headline cannot exceed 300 characters."),
   slug,
-  dek: z.string().trim().max(400, "সারসংক্ষেপ ৪০০ অক্ষরের বেশি হতে পারবে না।").default(""),
+  dek: z.string().trim().max(400, "Summary cannot exceed 400 characters.").default(""),
   bodyHtml: z
     .string()
-    .max(500_000, "লেখার আকার অনুমোদিত সীমার বেশি।")
+    .max(500_000, "Body exceeds the allowed size.")
     .default(""),
-  categoryId: z.string().uuid("বিভাগ সঠিক নয়।").nullish(),
+  categoryId: z.string().uuid("That section is not valid.").nullish(),
   // Must be http(s): Zod's bare .url() accepts javascript: and data: schemes.
   heroImageUrl: httpUrlSchema.nullish(),
   heroImageAlt: z.string().trim().max(300).nullish(),
@@ -45,7 +45,7 @@ export const articleInputSchema = z.object({
 export type ArticleInput = z.infer<typeof articleInputSchema>;
 
 export const transitionInputSchema = z.object({
-  id: z.string().uuid("লেখার আইডি সঠিক নয়।"),
+  id: z.string().uuid("That article id is not valid."),
   to: z.enum([
     "draft",
     "pending_review",

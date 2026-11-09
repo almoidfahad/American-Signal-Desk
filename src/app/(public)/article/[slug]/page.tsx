@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArticleCard, formatPublished } from "@/components/news/article-card";
+import { ArticleCard, CategoryTag, formatPublished } from "@/components/news/article-card";
+import { ShareMenu } from "@/components/news/share-menu";
 import { NoticeBanner } from "@/components/ui/states";
 import { getArticle, listArticleSlugs } from "@/server/content/repository";
 import { htmlToText, sanitizeArticleHtml } from "@/server/content/sanitize";
@@ -83,7 +84,7 @@ export default async function ArticlePage({ params }: PageProps) {
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-12">
+    <div className="shell grid gap-8 py-6 lg:grid-cols-12">
       <article className="lg:col-span-8">
         {data.isDemoData && (
           <div className="mb-5">
@@ -120,16 +121,22 @@ export default async function ArticlePage({ params }: PageProps) {
           </ol>
         </nav>
 
-        <p className="mt-4 text-xs font-bold tracking-widest text-signal-600 uppercase">
-          {article.categoryName}
-        </p>
+        <div className="mt-4">
+          <CategoryTag
+            name={article.categoryName}
+            href={`/category/${article.categorySlug}`}
+            tone="solid"
+          />
+        </div>
 
-        <h1 className="mt-2 font-serif text-3xl leading-tight font-extrabold text-navy-900 sm:text-4xl">
+        <h1 className="mt-3 text-[32px] leading-[1.12] font-extrabold tracking-tight text-navy-900 sm:text-[42px]">
           {article.title}
         </h1>
 
         {article.dek && (
-          <p className="mt-3 text-lg leading-relaxed text-navy-700">{article.dek}</p>
+          <p className="mt-3 font-serif text-[19px] leading-relaxed text-navy-700">
+            {article.dek}
+          </p>
         )}
 
         <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 border-y border-navy-100 py-3 text-xs text-navy-600">
@@ -159,6 +166,13 @@ export default async function ArticlePage({ params }: PageProps) {
           )}
           <span aria-hidden="true">&bull;</span>
           <span>{article.readingMinutes} min read</span>
+          <div className="ml-auto">
+            <ShareMenu
+              url={`${siteUrl}/article/${article.slug}`}
+              title={article.title}
+              variant="inline"
+            />
+          </div>
         </div>
 
         {article.aiProvenance?.assisted && (
@@ -225,9 +239,7 @@ export default async function ArticlePage({ params }: PageProps) {
       </article>
 
       <aside aria-label="Related coverage" className="lg:col-span-4">
-        <h2 className="border-b-2 border-navy-900 pb-1 text-sm font-bold tracking-widest text-navy-900 uppercase">
-          Related Coverage
-        </h2>
+        <h2 className="section-label">Related Coverage</h2>
         {related.length > 0 ? (
           <div className="mt-4 space-y-5">
             {related.map((a) => (

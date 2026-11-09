@@ -24,7 +24,7 @@ interface Props {
  * Lifecycle buttons.
  *
  * The list of transitions is computed on the server from the actor's permissions and the
- * article's current status — so a button that would be rejected is never rendered. That is
+ * article's current status - so a button that would be rejected is never rendered. That is
  * presentation only: the server action re-checks everything, which is what actually stops
  * a crafted request.
  */
@@ -39,7 +39,8 @@ export function TransitionControls({ articleId, transitions, action }: Props) {
   if (transitions.length === 0) {
     return (
       <p className="text-sm text-navy-500">
-        আপনার ভূমিকার জন্য এই লেখায় এখন কোনো ধাপ উপলব্ধ নেই।
+        No transitions are available to you for this article right now. The article has to move
+        through its review chain, and each step requires a specific permission.
       </p>
     );
   }

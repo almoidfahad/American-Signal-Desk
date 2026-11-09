@@ -54,17 +54,17 @@ async function resolveActor(): Promise<Actor> {
 function translate(code: ServiceErrorCode): string {
   switch (code) {
     case "NOT_CONFIGURED":
-      return "ডেটাবেস কনফিগার করা নেই। কিছুই সংরক্ষণ হয়নি।";
+      return "No database is configured. Nothing was saved.";
     case "FORBIDDEN":
-      return "এই কাজটি করার অনুমতি আপনার নেই।";
+      return "Your role does not permit this action.";
     case "NOT_FOUND":
-      return "লেখাটি পাওয়া যায়নি।";
+      return "That article could not be found.";
     case "INVALID":
-      return "তথ্যগুলো সঠিক নয়।";
+      return "Some details are not valid.";
     case "ILLEGAL_TRANSITION":
-      return "এই ধাপটি অনুমোদিত নয়।";
+      return "That transition is not allowed from the current state.";
     case "CONFLICT":
-      return "একটি সংঘর্ষ হয়েছে। আবার চেষ্টা করুন।";
+      return "Someone else changed this article. Reload and try again.";
   }
 }
 
@@ -95,7 +95,7 @@ export async function createArticleAction(
   try {
     actor = await resolveActor();
   } catch {
-    return { ok: false, message: "সেশন শেষ হয়ে গেছে। আবার সাইন ইন করুন।" };
+    return { ok: false, message: "Your session has expired. Sign in again." };
   }
 
   const parsed = articleInputSchema.safeParse(formToArticleInput(formData));
@@ -105,7 +105,7 @@ export async function createArticleAction(
       const key = String(issue.path[0] ?? "form");
       if (!fieldErrors[key]) fieldErrors[key] = issue.message;
     }
-    return { ok: false, message: "কিছু তথ্য সঠিক নয়।", fieldErrors };
+    return { ok: false, message: "Some details are not valid.", fieldErrors };
   }
 
   const result = await createDraft(actor, parsed.data);
@@ -113,7 +113,7 @@ export async function createArticleAction(
 
   return {
     ok: true,
-    message: "ড্রাফট সংরক্ষিত হয়েছে।",
+    message: "Draft saved.",
     redirectTo: `/admin/articles/${result.data.id}`,
   };
 }
@@ -129,11 +129,11 @@ export async function updateArticleAction(
   try {
     actor = await resolveActor();
   } catch {
-    return { ok: false, message: "সেশন শেষ হয়ে গেছে। আবার সাইন ইন করুন।" };
+    return { ok: false, message: "Your session has expired. Sign in again." };
   }
 
   const id = String(formData.get("id") ?? "");
-  if (!id) return { ok: false, message: "লেখার আইডি পাওয়া যায়নি।" };
+  if (!id) return { ok: false, message: "The article id is missing." };
 
   const parsed = articleInputSchema.partial().safeParse(formToArticleInput(formData));
   if (!parsed.success) {
@@ -142,13 +142,13 @@ export async function updateArticleAction(
       const key = String(issue.path[0] ?? "form");
       if (!fieldErrors[key]) fieldErrors[key] = issue.message;
     }
-    return { ok: false, message: "কিছু তথ্য সঠিক নয়।", fieldErrors };
+    return { ok: false, message: "Some details are not valid.", fieldErrors };
   }
 
   const result = await updateDraft(actor, id, parsed.data);
   if (!result.ok) return { ok: false, message: translate(result.code) };
 
-  return { ok: true, message: "পরিবর্তন সংরক্ষিত হয়েছে।" };
+  return { ok: true, message: "Changes saved." };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -162,7 +162,7 @@ export async function transitionArticleAction(
   try {
     actor = await resolveActor();
   } catch {
-    return { ok: false, message: "সেশন শেষ হয়ে গেছে। আবার সাইন ইন করুন।" };
+    return { ok: false, message: "Your session has expired. Sign in again." };
   }
 
   const parsed = transitionInputSchema.safeParse({
@@ -172,7 +172,7 @@ export async function transitionArticleAction(
   });
 
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "অনুরোধটি সঠিক নয়।" };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "That request is not valid." };
   }
 
   const result = await transitionArticle(actor, parsed.data.id, parsed.data.to as ArticleStatus, parsed.data.note);
@@ -200,18 +200,18 @@ export async function transitionArticleAction(
   }
 
   const messages: Record<string, string> = {
-    pending_review: "রিভিউয়ের জন্য পাঠানো হয়েছে।",
-    approved: "অনুমোদিত হয়েছে।",
-    changes_requested: "পরিবর্তনের অনুরোধ পাঠানো হয়েছে।",
-    rejected: "প্রত্যাখ্যাত হয়েছে।",
-    published: "প্রকাশিত হয়েছে। পাবলিক সাইটে এখন দৃশ্যমান।",
-    scheduled: "শিডিউল করা হয়েছে।",
-    archived: "আর্কাইভ করা হয়েছে এবং পাবলিক সাইট থেকে সরানো হয়েছে।",
-    trash: "ট্র্যাশে সরানো হয়েছে।",
-    draft: "ড্রাফটে ফিরিয়ে আনা হয়েছে।",
+    pending_review: "Sent for review.",
+    approved: "Approved.",
+    changes_requested: "Changes requested.",
+    rejected: "Rejected.",
+    published: "Published. It is now live on the public site.",
+    scheduled: "Scheduled.",
+    archived: "Archived and removed from the public site.",
+    trash: "Moved to trash.",
+    draft: "Returned to draft.",
   };
 
-  return { ok: true, message: messages[parsed.data.to] ?? "সম্পন্ন হয়েছে।" };
+  return { ok: true, message: messages[parsed.data.to] ?? "Done." };
 }
 
 /* -------------------------------------------------------------------------- */

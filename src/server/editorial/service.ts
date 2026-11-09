@@ -67,7 +67,7 @@ const NOT_CONFIGURED: ServiceResult<never> = {
   ok: false,
   code: "NOT_CONFIGURED",
   message:
-    "সংবাদপত্রের ডেটাবেস কনফিগার করা নেই। এই কাজটি করা যায়নি, এবং কিছুই সংরক্ষণ হয়নি।",
+    "No newsroom database is configured. Nothing was saved.",
 };
 
 /**
@@ -127,15 +127,15 @@ export async function getArticleForEditing(
 
   if (error) {
     console.error(`[editorial] load failed: ${error.message}`);
-    return { ok: false, code: "CONFLICT", message: "লেখাটি লোড করা যায়নি।" };
+    return { ok: false, code: "CONFLICT", message: "The article could not be loaded." };
   }
-  if (!data) return { ok: false, code: "NOT_FOUND", message: "লেখাটি পাওয়া যায়নি।" };
+  if (!data) return { ok: false, code: "NOT_FOUND", message: "The article was not found." };
 
   const record = rowToRecord(data);
   const isOwner = record.createdBy === actor.userId;
   const canRead = can(actor, "article.review") || can(actor, "article.edit.any") || isOwner;
 
-  if (!canRead) return { ok: false, code: "FORBIDDEN", message: "এই লেখাটি দেখার অনুমতি নেই।" };
+  if (!canRead) return { ok: false, code: "FORBIDDEN", message: "You do not have permission to view this article." };
   return { ok: true, data: record };
 }
 
@@ -148,7 +148,7 @@ export async function createDraft(
   input: unknown,
 ): Promise<ServiceResult<ArticleRecord>> {
   if (!can(actor, "article.create")) {
-    return { ok: false, code: "FORBIDDEN", message: "লেখা তৈরির অনুমতি নেই।" };
+    return { ok: false, code: "FORBIDDEN", message: "You do not have permission to create articles." };
   }
 
   const parsed = articleInputSchema.safeParse(input);
@@ -156,7 +156,7 @@ export async function createDraft(
     return {
       ok: false,
       code: "INVALID",
-      message: parsed.error.issues[0]?.message ?? "তথ্যগুলো সঠিক নয়।",
+      message: parsed.error.issues[0]?.message ?? "Those details are not valid.",
     };
   }
 
@@ -185,10 +185,10 @@ export async function createDraft(
   if (error) {
     // A duplicate slug is a user-fixable conflict, not a server fault.
     if (error.code === "23505") {
-      return { ok: false, code: "CONFLICT", message: "এই স্লাগটি আগেই ব্যবহার করা হয়েছে।" };
+      return { ok: false, code: "CONFLICT", message: "That slug is already in use." };
     }
     console.error(`[editorial] create failed: ${error.message}`);
-    return { ok: false, code: "CONFLICT", message: "ড্রাফট সংরক্ষণ করা যায়নি।" };
+    return { ok: false, code: "CONFLICT", message: "The draft could not be saved." };
   }
 
   const record = rowToRecord(data);
@@ -208,7 +208,7 @@ export async function updateDraft(
   const article = loaded.data;
 
   if (!can(actor, "article.edit.own", { ownerId: article.createdBy })) {
-    return { ok: false, code: "FORBIDDEN", message: "এই লেখাটি সম্পাদনার অনুমতি নেই।" };
+    return { ok: false, code: "FORBIDDEN", message: "You do not have permission to edit this article." };
   }
 
   // Published copy must not be silently rewritten: that is how corrections get laundered.
@@ -217,7 +217,7 @@ export async function updateDraft(
       ok: false,
       code: "ILLEGAL_TRANSITION",
       message:
-        "প্রকাশিত লেখা সরাসরি সম্পাদনা করা যায় না। প্রথমে 'ড্রাফট'-এ ফিরিয়ে আনুন, তাহলে সংশোধনটি ইতিহাসে থাকবে।",
+        "A published article cannot be edited in place. Return it to draft first so the correction is kept in the revision history.",
     };
   }
 
@@ -226,7 +226,7 @@ export async function updateDraft(
     return {
       ok: false,
       code: "INVALID",
-      message: parsed.error.issues[0]?.message ?? "তথ্যগুলো সঠিক নয়।",
+      message: parsed.error.issues[0]?.message ?? "Those details are not valid.",
     };
   }
 
@@ -255,7 +255,7 @@ export async function updateDraft(
 
   if (error) {
     console.error(`[editorial] update failed: ${error.message}`);
-    return { ok: false, code: "CONFLICT", message: "পরিবর্তন সংরক্ষণ করা যায়নি।" };
+    return { ok: false, code: "CONFLICT", message: "The changes could not be saved." };
   }
 
   const record = rowToRecord(data);
@@ -276,7 +276,7 @@ export async function transitionArticle(
   note?: string,
 ): Promise<ServiceResult<ArticleRecord>> {
   if (!isArticleStatus(to)) {
-    return { ok: false, code: "INVALID", message: "অজানা স্ট্যাটাস।" };
+    return { ok: false, code: "INVALID", message: "Unknown status." };
   }
 
   const loaded = await getArticleForEditing(actor, id);
@@ -305,7 +305,7 @@ export async function transitionArticle(
     return {
       ok: false,
       code: "FORBIDDEN",
-      message: `এই স্ট্যাটাসে নেওয়ার অনুমতি নেই (${statusPermission})।`,
+      message: `You are not allowed to move the article to this status (${statusPermission}).`,
     };
   }
 
@@ -321,7 +321,7 @@ export async function transitionArticle(
       return {
         ok: false,
         code: "INVALID",
-        message: "শিডিউল করার জন্য ভবিষ্যতের একটি প্রকাশের সময় নির্ধারণ করতে হবে।",
+        message: "Scheduling requires a publish time in the future.",
       };
     }
   }
@@ -340,13 +340,13 @@ export async function transitionArticle(
 
   if (error) {
     console.error(`[editorial] transition failed: ${error.message}`);
-    return { ok: false, code: "CONFLICT", message: "স্ট্যাটাস পরিবর্তন করা যায়নি।" };
+    return { ok: false, code: "CONFLICT", message: "The status could not be changed." };
   }
   if (!data) {
     return {
       ok: false,
       code: "CONFLICT",
-      message: "লেখাটির অবস্থা ইতিমধ্যে বদলে গেছে। পেজটি রিফ্রেশ করে আবার চেষ্টা করুন।",
+      message: "The article has already moved on. Refresh the page and try again.",
     };
   }
 
@@ -366,7 +366,7 @@ export async function listArticlesForActor(
 ): Promise<ServiceResult<{ items: ArticleRecord[]; truncated: boolean }>> {
   const canSeeAll = can(actor, "article.review") || can(actor, "article.edit.any");
   if (!canSeeAll && !can(actor, "article.create")) {
-    return { ok: false, code: "FORBIDDEN", message: "লেখার তালিকা দেখার অনুমতি নেই।" };
+    return { ok: false, code: "FORBIDDEN", message: "You do not have permission to view the article list." };
   }
 
   const db = serviceClient();
@@ -387,7 +387,7 @@ export async function listArticlesForActor(
   const { data, error } = await query;
   if (error) {
     console.error(`[editorial] list failed: ${error.message}`);
-    return { ok: false, code: "CONFLICT", message: "তালিকা লোড করা যায়নি।" };
+    return { ok: false, code: "CONFLICT", message: "The list could not be loaded." };
   }
 
   const rows = (data ?? []) as Record<string, unknown>[];
