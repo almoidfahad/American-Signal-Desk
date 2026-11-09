@@ -182,13 +182,7 @@ export default async function HomePage() {
             <div className="mt-4 divide-y divide-navy-100">
               {data.latest.slice(0, 6).map((article) => (
                 <div key={article.slug} className="py-4 first:pt-0">
-                  <ArticleCard article={article} />
-                  {article.dek && (
-                    <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-navy-600">
-                      {article.dek}
-                    </p>
-                  )}
-                  <MetaLine article={article} />
+                  <ArticleCard article={article} showDek />
                 </div>
               ))}
             </div>

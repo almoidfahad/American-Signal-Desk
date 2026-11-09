@@ -131,7 +131,13 @@ export function MetaLine({
   );
 }
 
-export function ArticleCard({ article }: { article: ArticleCardModel }) {
+export function ArticleCard({
+  article,
+  showDek = false,
+}: {
+  article: ArticleCardModel;
+  showDek?: boolean;
+}) {
   return (
     <article className="group">
       <div className="flex gap-4">
@@ -146,7 +152,7 @@ export function ArticleCard({ article }: { article: ArticleCardModel }) {
               decoding="async"
             />
           ) : (
-            <ArtworkPlaceholder label={article.categoryName} tone="light" />
+            <ArtworkPlaceholder label="No artwork" tone="light" />
           )}
         </div>
         <div className="min-w-0 flex-1">
@@ -156,6 +162,11 @@ export function ArticleCard({ article }: { article: ArticleCardModel }) {
               {article.title}
             </Link>
           </h3>
+          {showDek && article.dek && (
+            <p className="mt-1 line-clamp-2 text-[12.5px] leading-relaxed text-navy-600">
+              {article.dek}
+            </p>
+          )}
           <div className="mt-1.5">
             <MetaLine article={article} />
           </div>
@@ -178,7 +189,7 @@ export function LeadStory({ article }: { article: ArticleCardModel }) {
             fetchPriority="high"
           />
         ) : (
-          <ArtworkPlaceholder label={`${article.categoryName} — lead artwork pending`} />
+          <ArtworkPlaceholder label="Lead artwork pending" />
         )}
         <div
           aria-hidden="true"
@@ -221,7 +232,7 @@ export function CompactPick({ article }: { article: ArticleCardModel }) {
             decoding="async"
           />
         ) : (
-          <ArtworkPlaceholder label={article.categoryName} tone="light" />
+          <ArtworkPlaceholder label="No artwork" tone="light" />
         )}
       </div>
       <h3 className="mt-2.5 text-[14px] leading-snug font-bold text-navy-900 group-hover:text-signal-700">

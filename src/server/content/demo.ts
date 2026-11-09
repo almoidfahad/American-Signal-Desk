@@ -192,7 +192,10 @@ export function demoHomePage(): HomePageData {
   return {
     lead,
     secondary: rest.slice(0, 3),
-    latest: cards.slice(1),
+    // "latest" is the below-the-fold band, so it must not repeat the lead or the three
+    // stories already stacked in the "Latest" rail beside it. Overlap there read as a bug
+    // in the rendered page, and on a real homepage it would be one.
+    latest: rest.slice(3),
     editorsPicks: cards.slice(4, 8),
     mostRead: cards.slice(0, 5).map((a) => ({ title: a.title, slug: a.slug })),
     categories: DEMO_CATEGORIES,

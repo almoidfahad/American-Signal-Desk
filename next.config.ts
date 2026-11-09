@@ -4,11 +4,14 @@ const isProd = process.env.NODE_ENV === "production";
 
 /**
  * Baseline security headers. CSP is intentionally delegated to middleware so it can
- * carry a per-request nonce; see src/middleware.ts.
+ * carry a per-request nonce; see src/proxy.ts.
  */
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-Frame-Options", value: "DENY" },
+  // Production refuses framing entirely. In development the app is shown inside the
+  // sandbox preview's iframe, and DENY makes that preview render as a blank/error frame
+  // rather than the site - a dev-only concession that never reaches a production build.
+  { key: "X-Frame-Options", value: isProd ? "DENY" : "" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-DNS-Prefetch-Control", value: "on" },
   {
