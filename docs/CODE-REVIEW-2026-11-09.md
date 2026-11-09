@@ -169,3 +169,47 @@ error mapping) and is the most valuable of the six to cover.
 
 Items 1–4 are small enough to do together. 5 is a refactor with no behaviour
 change and should be its own commit so it can be reverted on its own.
+
+---
+
+## Follow-up: the three-port preview
+
+Reported from a screenshot of the preview panel: one website, three tiles
+(`:3000`, `:3111`, `:3112`).
+
+**Cause.** Not a build problem and not a configuration mistake — `next dev` does
+not fail when its port is taken. It moves to 3111, then 3112, silently. In this
+environment each listening port is surfaced as its own preview, so every dev
+server left running from an earlier session added another identical tile, and
+nothing on screen said which one was the current build. Two orphaned
+`next-server` processes from earlier turns (started 02:56 and 02:57, both with
+`cwd` = this repo) were holding 3111 and 3112.
+
+**Fix, in two parts.**
+
+1. `npm run dev` now runs `scripts/dev.mjs` instead of `next dev`. It probes the
+   port first and passes `-p` explicitly, so Next cannot choose a port of its
+   own. If the port is held by something that is not our own dev server it exits
+   `1` with the owner's pid, command and cwd — it refuses to drift. If it *is*
+   our own server, it says so and exits `0` rather than starting a twin.
+2. `npm run dev:clean` stops every dev server whose cwd is this repo, reporting
+   the ports each one held. `next dev` itself is still available as
+   `npm run dev:next`, so the launcher can never be the reason someone is
+   blocked.
+
+The launcher also clears a stale `.next/dev/lock` (Next 16 writes one containing
+pid and port). A lock whose process has died makes Next refuse to boot with
+"Another next dev server is already running" and point at a pid that no longer
+exists — a genuinely confusing failure after a container restart.
+
+**Note on the check itself:** identity is decided by process (`cwd` + listening
+port), not by an `X-Powered-By` header. `next.config.ts` sets
+`poweredByHeader: false` on purpose, so a header-based check called our own
+healthy server a stranger. That mistake was made and caught by the first run of
+the launcher.
+
+`tests/dev-server.test.ts` (4 tests) pins it: the npm scripts point where they
+claim, `-p` is passed explicitly, no header-based detection creeps back in, and a
+real non-Next process on a real port makes the launcher exit `1` with the
+refusal message. Sabotage check: restoring `"dev": "next dev"` fails the first
+test with the file named.

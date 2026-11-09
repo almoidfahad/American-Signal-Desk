@@ -2,12 +2,14 @@
   "name": "american-signal-desk",
   "version": "0.1.0",
   "private": true,
-  "description": "American Signal Desk — US news platform with a secure editorial CMS and AI newsroom control plane.",
+  "description": "American Signal Desk \u2014 US news platform with a secure editorial CMS and AI newsroom control plane.",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev.mjs",
+    "dev:clean": "node scripts/dev.mjs --clean",
+    "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
