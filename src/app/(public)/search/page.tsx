@@ -30,8 +30,8 @@ export default async function SearchPage({ searchParams }: PageProps) {
   return (
     <div className="shell py-8">
       <div className="mx-auto max-w-3xl">
-        <h1 className="text-[28px] font-extrabold tracking-tight text-navy-900">Search</h1>
-        <p className="mt-1 text-sm text-navy-600">
+        <h1 className="text-display font-extrabold tracking-tight text-navy-900">Search</h1>
+        <p className="mt-1 text-body text-navy-600">
           Search reporting by headline, standfirst and body text.
         </p>
 
@@ -45,11 +45,11 @@ export default async function SearchPage({ searchParams }: PageProps) {
             type="search"
             defaultValue={query}
             placeholder="Search news, authors, or topics…"
-            className="h-11 min-w-0 flex-1 rounded-md border border-navy-300 px-3 text-sm text-navy-900 placeholder:text-navy-400 focus:border-navy-900"
+            className="h-11 min-w-0 flex-1 rounded-md border border-navy-300 px-3 text-body text-navy-900 placeholder:text-navy-400 focus:border-navy-900"
           />
           <button
             type="submit"
-            className="h-11 shrink-0 rounded-md bg-signal-600 px-5 text-sm font-bold text-white hover:bg-signal-700"
+            className="h-11 shrink-0 rounded-md bg-signal-600 px-5 text-body font-bold text-white hover:bg-signal-700"
           >
             Search
           </button>
@@ -57,14 +57,14 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
         {!query && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-bold tracking-[0.1em] text-navy-500 uppercase">
+            <span className="text-caption font-bold tracking-[0.1em] text-navy-500 uppercase">
               Try
             </span>
             {SUGGESTIONS.map((suggestion) => (
               <Link
                 key={suggestion}
                 href={`/search?q=${encodeURIComponent(suggestion)}`}
-                className="rounded-full bg-navy-50 px-3 py-1 text-[12px] font-semibold text-navy-700 hover:bg-navy-100"
+                className="rounded-full bg-navy-50 px-3 py-1 text-caption font-semibold text-navy-700 hover:bg-navy-100"
               >
                 {suggestion}
               </Link>
@@ -131,7 +131,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
                 <li key={category.slug}>
                   <Link
                     href={`/category/${category.slug}`}
-                    className="flex items-center gap-2 rounded-md bg-navy-50 px-3 py-2.5 text-[12.5px] font-semibold text-navy-800 hover:bg-navy-100 hover:text-signal-700"
+                    className="flex items-center gap-2 rounded-md bg-navy-50 px-3 py-2.5 text-caption font-semibold text-navy-800 hover:bg-navy-100 hover:text-signal-700"
                   >
                     <span
                       aria-hidden="true"

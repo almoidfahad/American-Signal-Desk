@@ -66,7 +66,7 @@ export function SiteNav({ categories }: { categories: MegaColumn[] }) {
             onClick={() => togglePanel("mobile")}
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
-            className="flex items-center gap-2 px-3 py-3 text-sm font-semibold hover:bg-navy-800 lg:hidden"
+            className="flex items-center gap-2 px-3 py-3 text-body font-semibold hover:bg-navy-800 lg:hidden"
           >
             <span aria-hidden="true" className="flex flex-col gap-[3px]">
               <span className="block h-[2px] w-4 bg-current" />
@@ -83,7 +83,7 @@ export function SiteNav({ categories }: { categories: MegaColumn[] }) {
                 <Link
                   href="/"
                   aria-current={isActive("/") ? "page" : undefined}
-                  className={`block px-4 py-3 text-[13px] font-bold uppercase tracking-wide transition-colors ${
+                  className={`block px-4 py-3 text-small font-bold uppercase tracking-wide transition-colors ${
                     isActive("/") ? "bg-signal-600" : "hover:bg-signal-600"
                   }`}
                 >
@@ -97,7 +97,7 @@ export function SiteNav({ categories }: { categories: MegaColumn[] }) {
                     <Link
                       href={href}
                       aria-current={isActive(href) ? "page" : undefined}
-                      className={`block px-3 py-3 text-[13px] font-semibold transition-colors hover:bg-navy-800 ${
+                      className={`block px-3 py-3 text-small font-semibold transition-colors hover:bg-navy-800 ${
                         isActive(href) ? "bg-navy-800 text-white" : "text-navy-100"
                       }`}
                     >
@@ -112,7 +112,7 @@ export function SiteNav({ categories }: { categories: MegaColumn[] }) {
           <div className="ml-auto flex items-stretch">
             <Link
               href="/opinion"
-              className="hidden px-3 py-3 text-[13px] font-semibold text-navy-100 hover:bg-navy-800 md:block"
+              className="hidden px-3 py-3 text-small font-semibold text-navy-100 hover:bg-navy-800 md:block"
             >
               More
             </Link>
@@ -121,7 +121,7 @@ export function SiteNav({ categories }: { categories: MegaColumn[] }) {
               onClick={() => togglePanel("search")}
               aria-expanded={searchOpen}
               aria-controls="nav-search"
-              className="flex items-center gap-2 px-4 py-3 text-sm font-semibold hover:bg-navy-800"
+              className="flex items-center gap-2 px-4 py-3 text-body font-semibold hover:bg-navy-800"
             >
               <SearchIcon />
               <span className="sr-only sm:not-sr-only">Search</span>
@@ -148,11 +148,11 @@ export function SiteNav({ categories }: { categories: MegaColumn[] }) {
                 type="search"
                 autoFocus
                 placeholder="Search news, authors, or topics…"
-                className="h-10 min-w-0 flex-1 rounded-md border border-navy-600 bg-navy-950 px-3 text-sm text-white placeholder:text-navy-400 focus:border-white"
+                className="h-10 min-w-0 flex-1 rounded-md border border-navy-600 bg-navy-950 px-3 text-body text-white placeholder:text-navy-400 focus:border-white"
               />
               <button
                 type="submit"
-                className="h-10 rounded-md bg-signal-600 px-4 text-sm font-bold hover:bg-signal-700"
+                className="h-10 rounded-md bg-signal-600 px-4 text-body font-bold hover:bg-signal-700"
               >
                 Search
               </button>
@@ -170,7 +170,7 @@ export function SiteNav({ categories }: { categories: MegaColumn[] }) {
         >
           <ul className="shell py-2">
             <li>
-              <Link href="/" className="block rounded px-2 py-3 text-sm font-bold hover:bg-navy-800">
+              <Link href="/" className="block rounded px-2 py-3 text-body font-bold hover:bg-navy-800">
                 Home
               </Link>
             </li>
@@ -178,7 +178,7 @@ export function SiteNav({ categories }: { categories: MegaColumn[] }) {
               <li key={category.slug}>
                 <Link
                   href={`/category/${category.slug}`}
-                  className="block rounded px-2 py-3 text-sm font-medium text-navy-100 hover:bg-navy-800"
+                  className="block rounded px-2 py-3 text-body font-medium text-navy-100 hover:bg-navy-800"
                 >
                   {category.name}
                 </Link>
@@ -187,7 +187,7 @@ export function SiteNav({ categories }: { categories: MegaColumn[] }) {
             <li className="mt-1 border-t border-navy-800 pt-2">
               <Link
                 href="/search"
-                className="block rounded px-2 py-3 text-sm font-semibold text-white hover:bg-navy-800"
+                className="block rounded px-2 py-3 text-body font-semibold text-white hover:bg-navy-800"
               >
                 Search
               </Link>

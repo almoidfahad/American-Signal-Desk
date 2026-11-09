@@ -45,14 +45,14 @@ export function SiteFooter() {
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-4">
             <BrandLink variant="light" size="md" />
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-navy-400">
+            <p className="mt-4 max-w-sm text-body leading-relaxed text-navy-400">
               American Signal Desk reports on the news that shapes the country — with named
               sourcing, editorial review before publication, and a corrections ledger readers can
               inspect.
             </p>
 
             <div className="mt-6">
-              <h2 className="text-[11px] font-bold tracking-[0.14em] text-white uppercase">
+              <h2 className="text-caption font-bold tracking-[0.14em] text-white uppercase">
                 Follow us
               </h2>
               <ul className="mt-2 flex items-center gap-2">
@@ -84,11 +84,11 @@ export function SiteFooter() {
           <nav aria-labelledby="footer-sections" className="md:col-span-4">
             <h2
               id="footer-sections"
-              className="text-[11px] font-bold tracking-[0.14em] text-white uppercase"
+              className="text-caption font-bold tracking-[0.14em] text-white uppercase"
             >
               Sections
             </h2>
-            <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-body">
               {SECTION_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="hover:text-white hover:underline">
@@ -102,11 +102,11 @@ export function SiteFooter() {
           <nav aria-labelledby="footer-policies" className="md:col-span-2">
             <h2
               id="footer-policies"
-              className="text-[11px] font-bold tracking-[0.14em] text-white uppercase"
+              className="text-caption font-bold tracking-[0.14em] text-white uppercase"
             >
               Policies
             </h2>
-            <ul className="mt-3 space-y-2 text-sm">
+            <ul className="mt-3 space-y-2 text-body">
               {POLICY_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="hover:text-white hover:underline">
@@ -120,11 +120,11 @@ export function SiteFooter() {
           <nav aria-labelledby="footer-company" className="md:col-span-2">
             <h2
               id="footer-company"
-              className="text-[11px] font-bold tracking-[0.14em] text-white uppercase"
+              className="text-caption font-bold tracking-[0.14em] text-white uppercase"
             >
               Company
             </h2>
-            <ul className="mt-3 space-y-2 text-sm">
+            <ul className="mt-3 space-y-2 text-body">
               {COMPANY_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="hover:text-white hover:underline">
@@ -136,7 +136,7 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 border-t border-navy-800 pt-6 text-xs text-navy-500 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-10 flex flex-col gap-3 border-t border-navy-800 pt-6 text-caption text-navy-500 sm:flex-row sm:items-center sm:justify-between">
           <p>
             &copy; {new Date().getFullYear()} American Signal Desk. All rights reserved.
           </p>

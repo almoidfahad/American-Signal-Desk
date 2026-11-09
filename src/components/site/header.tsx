@@ -52,7 +52,7 @@ export function SiteHeader({
     <header className="border-b border-navy-100 bg-white">
       {/* Band 1 — utility */}
       <div className="bg-navy-950 text-white on-dark">
-        <div className="shell flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-1.5 text-[11.5px]">
+        <div className="shell flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-1.5 text-caption">
           <p className="flex items-center gap-2 font-medium text-navy-200">
             <time dateTime={today.iso}>{today.label}</time>
             <span aria-hidden="true" className="text-navy-600">
@@ -109,10 +109,10 @@ export function SiteHeader({
         <div className="shell relative flex flex-col gap-4 py-5 md:flex-row md:items-center md:justify-between md:py-6">
           <BrandLink size="lg" />
           <div className="hidden text-right md:block">
-            <p className="font-serif text-[26px] leading-tight font-bold tracking-tight text-navy-900">
+            <p className="font-serif text-headline leading-tight font-bold tracking-tight text-navy-900">
               Real News. Real Impact.
             </p>
-            <p className="mt-1 text-[11px] font-bold tracking-[0.18em] text-navy-500 uppercase">
+            <p className="mt-1 text-caption font-bold tracking-[0.18em] text-navy-500 uppercase">
               Breaking News &bull; In-Depth Analysis &bull; Expert Insights
             </p>
           </div>

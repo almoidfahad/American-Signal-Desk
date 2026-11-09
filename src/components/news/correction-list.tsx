@@ -16,7 +16,7 @@ export function CorrectionList({ feed }: { feed: CorrectionFeed }) {
     return (
       <div
         role="status"
-        className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900"
+        className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-4 text-body text-amber-900"
       >
         <p className="font-semibold">Corrections are temporarily unavailable</p>
         <p className="mt-1">
@@ -29,7 +29,7 @@ export function CorrectionList({ feed }: { feed: CorrectionFeed }) {
 
   if (feed.state === "empty") {
     return (
-      <div className="mt-6 rounded-lg border border-navy-200 bg-navy-50 p-4 text-sm text-navy-800">
+      <div className="mt-6 rounded-lg border border-navy-200 bg-navy-50 p-4 text-body text-navy-800">
         <p className="font-semibold">No corrections have been published</p>
         <p className="mt-1">
           We have published no corrections to date. If you believe something we published is
@@ -41,17 +41,17 @@ export function CorrectionList({ feed }: { feed: CorrectionFeed }) {
 
   return (
     <div className="mt-8">
-      <h2 className="font-serif text-xl font-bold text-navy-900">Published corrections</h2>
+      <h2 className="font-serif text-dek font-bold text-navy-900">Published corrections</h2>
       <ol className="mt-4 space-y-6">
         {feed.corrections.map((entry) => (
           <li key={entry.id} className="border-l-4 border-red-600 pl-4">
             <time
               dateTime={entry.createdAt}
-              className="text-xs font-semibold uppercase tracking-wide text-navy-500"
+              className="text-caption font-semibold uppercase tracking-wide text-navy-500"
             >
               {formatLedgerDate(entry.createdAt)}
             </time>
-            <h3 className="mt-1 font-serif text-lg font-bold text-navy-900">
+            <h3 className="mt-1 font-serif text-title font-bold text-navy-900">
               {entry.articleSlug ? (
                 <Link href={`/article/${entry.articleSlug}`} className="hover:underline">
                   {entry.articleTitle || entry.articleSlug}
@@ -60,11 +60,11 @@ export function CorrectionList({ feed }: { feed: CorrectionFeed }) {
                 entry.articleTitle
               )}
             </h3>
-            <p className="mt-2 text-sm text-navy-700">
+            <p className="mt-2 text-body text-navy-700">
               <span className="font-semibold">What was wrong: </span>
               {entry.description}
             </p>
-            <p className="mt-1 text-sm text-navy-700">
+            <p className="mt-1 text-body text-navy-700">
               <span className="font-semibold">What it says now: </span>
               {entry.correction}
             </p>

@@ -73,16 +73,16 @@ export default async function ConfirmPage({
 
   return (
     <div className="shell max-w-2xl py-16">
-      <p className="text-[11px] font-bold tracking-[0.18em] text-navy-500 uppercase">Newsletter</p>
+      <p className="text-caption font-bold tracking-[0.18em] text-navy-500 uppercase">Newsletter</p>
       <div className={`mt-4 rounded-lg border p-6 ${border}`}>
-        <h1 className="text-xl font-bold text-navy-900">{copy.title}</h1>
-        <p className="mt-2 text-[14px] leading-relaxed text-navy-700">{copy.body}</p>
+        <h1 className="text-dek font-bold text-navy-900">{copy.title}</h1>
+        <p className="mt-2 text-small leading-relaxed text-navy-700">{copy.body}</p>
         {email && outcome !== "invalid" && (
-          <p className="mt-3 font-mono text-[12px] text-navy-500">{email}</p>
+          <p className="mt-3 font-mono text-caption text-navy-500">{email}</p>
         )}
       </div>
 
-      <p className="mt-6 text-[13px] text-navy-500">
+      <p className="mt-6 text-small text-navy-500">
         <Link href="/" className="font-semibold text-navy-900 underline">
           Back to the front page
         </Link>

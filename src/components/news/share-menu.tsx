@@ -56,7 +56,7 @@ export function ShareMenu({
           : "flex flex-wrap items-center gap-2 border-y border-navy-100 py-3"
       }
     >
-      <span className="mr-1 text-[11px] font-bold tracking-[0.1em] text-navy-500 uppercase">
+      <span className="mr-1 text-caption font-bold tracking-[0.1em] text-navy-500 uppercase">
         Share
       </span>
       {networks.map((network) => (
@@ -65,7 +65,7 @@ export function ShareMenu({
           href={network.href}
           target="_blank"
           rel="noopener noreferrer nofollow"
-          className="rounded border border-navy-200 px-2 py-1 text-[11.5px] font-semibold text-navy-700 transition-colors hover:border-navy-900 hover:text-navy-900"
+          className="rounded border border-navy-200 px-2 py-1 text-caption font-semibold text-navy-700 transition-colors hover:border-navy-900 hover:text-navy-900"
         >
           {network.label}
         </a>
@@ -73,14 +73,14 @@ export function ShareMenu({
       <button
         type="button"
         onClick={copy}
-        className="rounded border border-navy-200 px-2 py-1 text-[11.5px] font-semibold text-navy-700 transition-colors hover:border-navy-900 hover:text-navy-900"
+        className="rounded border border-navy-200 px-2 py-1 text-caption font-semibold text-navy-700 transition-colors hover:border-navy-900 hover:text-navy-900"
       >
         {status === "copied" ? "Copied" : "Copy link"}
       </button>
       {status !== "idle" && (
         <span
           role="status"
-          className={`text-[11px] font-medium ${
+          className={`text-caption font-medium ${
             status === "failed" ? "text-signal-700" : "text-verify-600"
           }`}
         >

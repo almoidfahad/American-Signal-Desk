@@ -39,7 +39,7 @@ function ArtworkPlaceholder({
         }`}
       />
       <span
-        className={`px-4 text-center text-[10px] font-bold tracking-[0.18em] uppercase ${
+        className={`px-4 text-center text-caption font-bold tracking-[0.18em] uppercase ${
           tone === "dark" ? "text-navy-300" : "text-navy-500"
         }`}
       >
@@ -60,8 +60,8 @@ export function CategoryTag({
 }) {
   const className =
     tone === "solid"
-      ? "inline-block rounded bg-signal-600 px-2 py-0.5 text-[10px] font-extrabold tracking-[0.1em] text-white uppercase"
-      : "text-[10.5px] font-extrabold tracking-[0.1em] uppercase text-signal-700";
+      ? "inline-block rounded bg-signal-600 px-2 py-0.5 text-caption font-extrabold tracking-[0.1em] text-white uppercase"
+      : "text-caption font-extrabold tracking-[0.1em] uppercase text-signal-700";
 
   if (!href) return <span className={className}>{name}</span>;
   return (
@@ -85,7 +85,7 @@ export function MetaLine({
       : "bg-navy-100 text-navy-700";
 
   return (
-    <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] ${base}`}>
+    <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-caption ${base}`}>
       {article.author && (
         <>
           <span className="font-semibold">{article.author.name}</span>
@@ -100,7 +100,7 @@ export function MetaLine({
       {article.isAiAssisted && (
         <>
           <span aria-hidden="true">&bull;</span>
-          <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${badge}`}>
+          <span className={`rounded px-1.5 py-0.5 text-caption font-semibold ${badge}`}>
             AI-assisted &middot; editor reviewed
           </span>
         </>
@@ -135,13 +135,13 @@ export function ArticleCard({
         </div>
         <div className="min-w-0 flex-1">
           <CategoryTag name={article.categoryName} tone="plain" />
-          <h3 className="mt-1 text-[15px] leading-snug font-bold text-navy-900 group-hover:text-signal-700 sm:text-base">
+          <h3 className="mt-1 text-title leading-snug font-bold text-navy-900 group-hover:text-signal-700">
             <Link href={`/article/${article.slug}`} className="focus-visible:underline">
               {article.title}
             </Link>
           </h3>
           {showDek && article.dek && (
-            <p className="mt-1 line-clamp-2 text-[12.5px] leading-relaxed text-navy-600">
+            <p className="mt-1 line-clamp-2 text-small leading-relaxed text-navy-600">
               {article.dek}
             </p>
           )}
@@ -174,16 +174,16 @@ export function LeadStory({ article }: { article: ArticleCardModel }) {
           className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/60 to-navy-950/5"
         />
         <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
-          <span className="inline-block rounded bg-signal-600 px-2.5 py-1 text-[10.5px] font-extrabold tracking-[0.14em] text-white uppercase">
+          <span className="inline-block rounded bg-signal-600 px-2.5 py-1 text-caption font-extrabold tracking-[0.14em] text-white uppercase">
             {article.isExclusive ? "Top Story" : article.categoryName}
           </span>
-          <h2 className="mt-3 text-[26px] leading-[1.12] font-extrabold text-white sm:text-[38px]">
+          <h2 className="mt-3 text-headline leading-[1.12] font-extrabold text-white">
             <Link href={`/article/${article.slug}`} className="hover:underline">
               {article.title}
             </Link>
           </h2>
           {article.dek && (
-            <p className="mt-2.5 hidden max-w-2xl text-[15px] leading-relaxed text-navy-100 sm:block">
+            <p className="mt-2.5 hidden max-w-2xl text-body leading-relaxed text-navy-100 sm:block">
               {article.dek}
             </p>
           )}
@@ -213,10 +213,10 @@ export function CompactPick({ article }: { article: ArticleCardModel }) {
           <ArtworkPlaceholder label="No artwork" tone="light" />
         )}
       </div>
-      <h3 className="mt-2.5 text-[14px] leading-snug font-bold text-navy-900 group-hover:text-signal-700">
+      <h3 className="mt-2.5 text-small leading-snug font-bold text-navy-900 group-hover:text-signal-700">
         <Link href={`/article/${article.slug}`}>{article.title}</Link>
       </h3>
-      <p className="mt-1 text-[11.5px] text-navy-500">{formatDate(article.publishedAt)}</p>
+      <p className="mt-1 text-caption text-navy-500">{formatDate(article.publishedAt)}</p>
     </article>
   );
 }
@@ -236,13 +236,13 @@ export function HeadlineRow({
     <li className="flex items-start gap-3">
       <span
         aria-hidden="true"
-        className="w-5 shrink-0 pt-0.5 text-[15px] leading-none font-extrabold text-signal-600 tabular"
+        className="w-5 shrink-0 pt-0.5 text-title leading-none font-extrabold text-signal-600 tabular"
       >
         {index + 1}
       </span>
       <Link
         href={`/article/${article.slug}`}
-        className="text-[13px] leading-snug font-semibold text-navy-800 hover:text-signal-700 hover:underline"
+        className="text-small leading-snug font-semibold text-navy-800 hover:text-signal-700 hover:underline"
       >
         <span className="sr-only">{index + 1}. </span>
         {article.title}

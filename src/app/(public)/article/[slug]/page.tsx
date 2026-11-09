@@ -103,7 +103,7 @@ export default async function ArticlePage({ params }: PageProps) {
           }}
         />
 
-        <nav aria-label="Breadcrumb" className="text-xs text-navy-500">
+        <nav aria-label="Breadcrumb" className="text-caption text-navy-500">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
               <Link href="/" className="hover:text-navy-900 hover:underline">
@@ -130,17 +130,17 @@ export default async function ArticlePage({ params }: PageProps) {
           />
         </div>
 
-        <h1 className="mt-3 text-[32px] leading-[1.12] font-extrabold tracking-tight text-navy-900 sm:text-[42px]">
+        <h1 className="mt-3 text-display leading-[1.12] font-extrabold tracking-tight text-navy-900">
           {article.title}
         </h1>
 
         {article.dek && (
-          <p className="mt-3 font-serif text-[19px] leading-relaxed text-navy-700">
+          <p className="mt-3 font-serif text-dek leading-relaxed text-navy-700">
             {article.dek}
           </p>
         )}
 
-        <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 border-y border-navy-100 py-3 text-xs text-navy-600">
+        <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 border-y border-navy-100 py-3 text-caption text-navy-600">
           {article.author && (
             <span className="font-semibold text-navy-900">
               By{" "}
@@ -194,21 +194,21 @@ export default async function ArticlePage({ params }: PageProps) {
               alt={article.imageAlt}
               className="aspect-[16/10] w-full rounded-lg object-cover"
             />
-            <figcaption className="mt-2 text-xs text-navy-500">{article.imageAlt}</figcaption>
+            <figcaption className="mt-2 text-caption text-navy-500">{article.imageAlt}</figcaption>
           </figure>
         ) : (
           <div
             aria-hidden="true"
             className="mt-6 flex aspect-[16/10] w-full items-center justify-center rounded-lg bg-gradient-to-br from-navy-800 via-navy-700 to-navy-900"
           >
-            <span className="text-xs font-semibold tracking-widest text-navy-300 uppercase">
+            <span className="text-caption font-semibold tracking-widest text-navy-300 uppercase">
               Artwork pending
             </span>
           </div>
         )}
 
         <div
-          className="prose-asd mt-8 max-w-[68ch] text-[17px] text-navy-900"
+          className="prose-asd mt-8 max-w-[68ch] text-body-lg text-navy-900"
           // Sanitised above with a strict allowlist; no scripts, styles or handlers survive.
           dangerouslySetInnerHTML={{ __html: safeBody }}
         />
@@ -219,7 +219,7 @@ export default async function ArticlePage({ params }: PageProps) {
               <li key={tag}>
                 <Link
                   href={`/search?q=${encodeURIComponent(tag)}`}
-                  className="inline-block rounded-full bg-navy-50 px-3 py-1 text-xs font-semibold text-navy-700 hover:bg-navy-100"
+                  className="inline-block rounded-full bg-navy-50 px-3 py-1 text-caption font-semibold text-navy-700 hover:bg-navy-100"
                 >
                   #{tag}
                 </Link>
@@ -228,7 +228,7 @@ export default async function ArticlePage({ params }: PageProps) {
           </ul>
         )}
 
-        <div className="mt-8 rounded-lg bg-navy-50 p-4 text-xs leading-relaxed text-navy-600">
+        <div className="mt-8 rounded-lg bg-navy-50 p-4 text-caption leading-relaxed text-navy-600">
           <p>
             <strong className="text-navy-900">Corrections policy.</strong> Found an error?{" "}
             <Link href="/corrections" className="underline">
@@ -248,7 +248,7 @@ export default async function ArticlePage({ params }: PageProps) {
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-sm text-navy-500">No related stories yet.</p>
+          <p className="mt-4 text-body text-navy-500">No related stories yet.</p>
         )}
       </aside>
     </div>

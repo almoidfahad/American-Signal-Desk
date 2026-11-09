@@ -88,7 +88,7 @@ export default async function HomePage() {
               ))}
             </div>
           ) : (
-            <p className="mt-4 text-sm text-navy-500">No additional stories yet.</p>
+            <p className="mt-4 text-body text-navy-500">No additional stories yet.</p>
           )}
         </section>
 
@@ -99,7 +99,7 @@ export default async function HomePage() {
           >
             <h2
               id="trending-heading"
-              className="flex items-center gap-1.5 border-b border-navy-100 bg-navy-50/60 px-4 py-2.5 text-[11px] font-extrabold tracking-[0.14em] text-navy-900 uppercase"
+              className="flex items-center gap-1.5 border-b border-navy-100 bg-navy-50/60 px-4 py-2.5 text-caption font-extrabold tracking-[0.14em] text-navy-900 uppercase"
             >
               <TrendingIcon className="h-3.5 w-3.5 text-signal-600" />
               Trending Now
@@ -126,19 +126,19 @@ export default async function HomePage() {
                 ))}
               </ol>
             ) : (
-              <p className="px-4 py-4 text-sm text-navy-500">Nothing trending yet.</p>
+              <p className="px-4 py-4 text-body text-navy-500">Nothing trending yet.</p>
             )}
           </section>
 
           <section aria-labelledby="newsletter-heading" className="rounded-card bg-navy-900 p-4 on-dark">
             <h2
               id="newsletter-heading"
-              className="flex items-center gap-2 text-[13px] font-bold text-white"
+              className="flex items-center gap-2 text-small font-bold text-white"
             >
               <MailIcon className="h-4 w-4 text-signal-500" />
               Newsletter Signup
             </h2>
-            <p className="mt-1 text-[12px] text-navy-300">
+            <p className="mt-1 text-caption text-navy-300">
               Get the latest news delivered to your inbox.
             </p>
             <NewsletterForm source="homepage-rail" />
@@ -154,7 +154,7 @@ export default async function HomePage() {
         >
           <h2
             id="picks-heading"
-            className="flex items-center gap-2 border-b border-navy-100 px-4 py-3 text-[11px] font-extrabold tracking-[0.14em] text-navy-900 uppercase"
+            className="flex items-center gap-2 border-b border-navy-100 px-4 py-3 text-caption font-extrabold tracking-[0.14em] text-navy-900 uppercase"
           >
             <StarIcon className="h-3.5 w-3.5 text-signal-600" />
             Editor&apos;s Picks
@@ -182,7 +182,7 @@ export default async function HomePage() {
               ))}
             </div>
           ) : (
-            <p className="mt-4 text-sm text-navy-500">No more stories right now.</p>
+            <p className="mt-4 text-body text-navy-500">No more stories right now.</p>
           )}
         </section>
 
@@ -196,7 +196,7 @@ export default async function HomePage() {
                 <li key={category.slug}>
                   <Link
                     href={`/category/${category.slug}`}
-                    className="flex h-full items-center gap-2 rounded-md bg-navy-50 px-3 py-3 text-[12.5px] font-semibold text-navy-800 transition-colors hover:bg-navy-100 hover:text-signal-700"
+                    className="flex h-full items-center gap-2 rounded-md bg-navy-50 px-3 py-3 text-caption font-semibold text-navy-800 transition-colors hover:bg-navy-100 hover:text-signal-700"
                   >
                     <span
                       aria-hidden="true"
@@ -208,7 +208,7 @@ export default async function HomePage() {
               ))}
             </ul>
           ) : (
-            <p className="mt-4 text-sm text-navy-500">Categories are not available.</p>
+            <p className="mt-4 text-body text-navy-500">Categories are not available.</p>
           )}
         </aside>
       </div>

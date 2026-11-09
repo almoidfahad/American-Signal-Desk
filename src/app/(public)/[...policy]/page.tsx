@@ -42,14 +42,14 @@ export default async function PolicyPage({ params }: PageProps) {
 
   return (
     <article className="mx-auto max-w-3xl">
-      <h1 className="font-serif text-3xl font-extrabold text-navy-900">{doc.title}</h1>
-      <p className="mt-2 text-sm text-navy-600">{doc.summary}</p>
-      <p className="mt-1 text-xs text-navy-500">
+      <h1 className="font-serif text-headline font-extrabold text-navy-900">{doc.title}</h1>
+      <p className="mt-2 text-body text-navy-600">{doc.summary}</p>
+      <p className="mt-1 text-caption text-navy-500">
         Last updated{" "}
         <time dateTime="2026-11-08">{doc.updated}</time>
       </p>
 
-      <div className="prose-asd mt-8 text-[16px] text-navy-900">
+      <div className="prose-asd mt-8 text-body text-navy-900">
         {doc.sections.map((section) => (
           <section key={section.heading}>
             <h2>{section.heading}</h2>

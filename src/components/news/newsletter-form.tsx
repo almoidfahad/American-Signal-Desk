@@ -70,14 +70,14 @@ export function NewsletterForm({
 
   const onDark = tone === "onDark";
   const inputClass = onDark
-    ? "h-10 w-full min-w-0 rounded border border-white/25 bg-white px-2.5 text-[13px] text-navy-900 placeholder:text-navy-400"
-    : "h-11 w-full min-w-0 rounded border border-navy-300 bg-white px-3 text-sm text-navy-900 placeholder:text-navy-400";
+    ? "h-10 w-full min-w-0 rounded border border-white/25 bg-white px-2.5 text-small text-navy-900 placeholder:text-navy-400"
+    : "h-11 w-full min-w-0 rounded border border-navy-300 bg-white px-3 text-body text-navy-900 placeholder:text-navy-400";
 
   if (state.kind === "done") {
     return (
       <p
         role="status"
-        className={`mt-3 rounded px-3 py-2 text-[12.5px] font-medium ${
+        className={`mt-3 rounded px-3 py-2 text-small font-medium ${
           onDark ? "bg-white/15 text-white" : "bg-verify-50 text-verify-600"
         }`}
       >
@@ -105,19 +105,19 @@ export function NewsletterForm({
         <button
           type="submit"
           disabled={state.kind === "submitting"}
-          className="h-10 shrink-0 rounded bg-signal-600 px-3 text-[12.5px] font-bold text-white transition-colors hover:bg-signal-700 disabled:opacity-60"
+          className="h-10 shrink-0 rounded bg-signal-600 px-3 text-small font-bold text-white transition-colors hover:bg-signal-700 disabled:opacity-60"
         >
           {state.kind === "submitting" ? "…" : ctaLabel}
         </button>
       </div>
 
       {state.kind === "error" && (
-        <p role="alert" className={`text-[11.5px] leading-snug ${onDark ? "text-signal-200" : "text-signal-700"}`}>
+        <p role="alert" className={`text-caption leading-snug ${onDark ? "text-signal-200" : "text-signal-700"}`}>
           {state.message}
         </p>
       )}
 
-      <p className={`text-[10.5px] leading-snug ${onDark ? "text-navy-300" : "text-navy-500"}`}>
+      <p className={`text-caption leading-snug ${onDark ? "text-navy-300" : "text-navy-500"}`}>
         By subscribing you agree to our{" "}
         <Link href="/privacy" className="underline">
           privacy policy

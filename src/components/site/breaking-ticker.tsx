@@ -68,7 +68,7 @@ export function BreakingTicker({ items }: { items: TickerItem[] }) {
       className="bg-signal-700 text-white on-dark"
     >
       <div className="shell flex items-center gap-3 py-2">
-        <p className="flex shrink-0 items-center gap-2 text-[11px] font-extrabold tracking-[0.14em] uppercase">
+        <p className="flex shrink-0 items-center gap-2 text-caption font-extrabold tracking-[0.14em] uppercase">
           <span aria-hidden="true" className="live-dot" />
           Breaking News
         </p>
@@ -78,7 +78,7 @@ export function BreakingTicker({ items }: { items: TickerItem[] }) {
         <div className="min-w-0 flex-1" aria-live="polite" aria-atomic="true">
           <Link
             href={current.href}
-            className="block truncate text-[13px] font-semibold hover:underline sm:text-sm"
+            className="block truncate text-small font-semibold hover:underline sm:text-body"
           >
             {current.headline}
           </Link>

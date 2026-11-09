@@ -59,7 +59,7 @@ export default async function CategoryPage({ params }: PageProps) {
   return (
     <div className="shell space-y-8 py-6">
       <header className="border-b-2 border-navy-900 pb-4">
-        <nav aria-label="Breadcrumb" className="text-[11.5px] text-navy-500">
+        <nav aria-label="Breadcrumb" className="text-caption text-navy-500">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li>
               <Link href="/" className="hover:text-navy-900 hover:underline">
@@ -72,10 +72,10 @@ export default async function CategoryPage({ params }: PageProps) {
             </li>
           </ol>
         </nav>
-        <h1 className="mt-2 text-[32px] leading-tight font-extrabold tracking-tight text-navy-900 sm:text-4xl">
+        <h1 className="mt-2 text-display leading-tight font-extrabold tracking-tight text-navy-900">
           {category.name}
         </h1>
-        <p className="mt-1.5 max-w-2xl text-[15px] text-navy-600">{category.description}</p>
+        <p className="mt-1.5 max-w-2xl text-body text-navy-600">{category.description}</p>
       </header>
 
       {isDemoData && (
@@ -129,10 +129,10 @@ export default async function CategoryPage({ params }: PageProps) {
               aria-labelledby="section-newsletter"
               className="rounded-card bg-navy-900 p-4 on-dark"
             >
-              <h2 id="section-newsletter" className="text-[13px] font-bold text-white">
+              <h2 id="section-newsletter" className="text-small font-bold text-white">
                 Get {category.name} in your inbox
               </h2>
-              <p className="mt-1 text-[12px] text-navy-300">
+              <p className="mt-1 text-caption text-navy-300">
                 The day&apos;s reporting from this desk, each morning.
               </p>
               <NewsletterForm source={`category-${category.slug}`} />
@@ -141,7 +141,7 @@ export default async function CategoryPage({ params }: PageProps) {
             <section aria-labelledby="other-sections" className="rounded-card ring-1 ring-navy-100">
               <h2
                 id="other-sections"
-                className="border-b border-navy-100 px-4 py-2.5 text-[11px] font-extrabold tracking-[0.14em] text-navy-900 uppercase"
+                className="border-b border-navy-100 px-4 py-2.5 text-caption font-extrabold tracking-[0.14em] text-navy-900 uppercase"
               >
                 Other Sections
               </h2>
@@ -150,7 +150,7 @@ export default async function CategoryPage({ params }: PageProps) {
                   <li key={other.slug}>
                     <Link
                       href={`/category/${other.slug}`}
-                      className="block bg-white px-3 py-2.5 text-[12.5px] font-semibold text-navy-800 hover:bg-navy-50 hover:text-signal-700"
+                      className="block bg-white px-3 py-2.5 text-caption font-semibold text-navy-800 hover:bg-navy-50 hover:text-signal-700"
                     >
                       {other.name}
                     </Link>
