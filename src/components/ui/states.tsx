@@ -19,8 +19,8 @@ export function EmptyState({
 }) {
   return (
     <div className={`${cardClass()} px-6 py-12 text-center`}>
-      <p className="text-base font-semibold text-navy-900">{title}</p>
-      <p className="mx-auto mt-2 max-w-prose text-sm text-navy-600">{description}</p>
+      <p className="text-title font-semibold text-navy-900">{title}</p>
+      <p className="mx-auto mt-2 max-w-prose text-body text-navy-600">{description}</p>
       {action && (
         <Link href={action.href} className={buttonClass("secondary", "sm", "mt-5")}>
           {action.label}
@@ -46,9 +46,9 @@ export function NoticeBanner({
   } as const;
 
   return (
-    <div role="status" className={`rounded-md px-4 py-3 text-sm ring-1 ${tones[tone]}`}>
+    <div role="status" className={`rounded-md px-4 py-3 text-body ring-1 ${tones[tone]}`}>
       <p className="font-semibold">{title}</p>
-      {children && <div className="mt-1 text-[13px] leading-relaxed">{children}</div>}
+      {children && <div className="mt-1 text-small leading-relaxed">{children}</div>}
     </div>
   );
 }
@@ -60,7 +60,7 @@ export function NotConfigured({
   detail,
 }: {
   feature: string;
-  requiredEnv: string[];
+  requiredEnv: readonly string[];
   detail: string;
 }) {
   return (
@@ -68,26 +68,26 @@ export function NotConfigured({
       <div className="flex items-start gap-3">
         <span
           aria-hidden="true"
-          className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-sm font-bold text-amber-800"
+          className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-body font-bold text-amber-800"
         >
           !
         </span>
         <div>
-          <h3 className="text-base font-semibold text-navy-900">{feature} is not configured</h3>
-          <p className="mt-1 text-sm text-navy-600">{detail}</p>
-          <p className="mt-3 text-xs font-semibold tracking-wide text-navy-500 uppercase">
+          <h3 className="text-title font-semibold text-navy-900">{feature} is not configured</h3>
+          <p className="mt-1 text-body text-navy-600">{detail}</p>
+          <p className="mt-3 text-caption font-semibold tracking-wide text-navy-500 uppercase">
             Required environment variables
           </p>
           <ul className="mt-1 space-y-1">
             {requiredEnv.map((name) => (
               <li key={name}>
-                <code className="rounded bg-navy-50 px-1.5 py-0.5 font-mono text-xs text-navy-800">
+                <code className="rounded bg-navy-50 px-1.5 py-0.5 font-mono text-caption text-navy-800">
                   {name}
                 </code>
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs text-navy-500">
+          <p className="mt-3 text-caption text-navy-500">
             Add these in your hosting provider&apos;s encrypted environment settings. Never paste
             secrets into chat.
           </p>

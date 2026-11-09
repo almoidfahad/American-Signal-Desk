@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { anonClient, readAnonEnv } from "@/server/db/client";
 import { DEMO_ARTICLES } from "./demo";
 import { contentMode } from "./repository";
 import type { ArticleCard } from "./types";
@@ -11,10 +11,9 @@ function toCard(a: (typeof DEMO_ARTICLES)[number]): ArticleCard {
 export async function getArticlesByCategory(
   categorySlug: string,
 ): Promise<{ articles: ArticleCard[]; isDemoData: boolean; contentUnavailable: boolean }> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const env = readAnonEnv();
 
-  if (!url || !key) {
+  if (!env) {
     if (process.env.NODE_ENV === "production") {
       // Honest empty result: the page renders a configuration notice, not a fake list.
       return { articles: [], isDemoData: false, contentUnavailable: true };
@@ -26,7 +25,8 @@ export async function getArticlesByCategory(
     };
   }
 
-  const db = createClient(url, key, { auth: { persistSession: false } });
+  const db = anonClient(env);
+  if (!db) return { articles: [], isDemoData: false, contentUnavailable: true };
   const { data, error } = await db
     .from("published_articles")
     .select(

@@ -46,3 +46,8 @@ supabase/.temp
 
 # Misc
 *.pem
+
+# Local PostgreSQL test harness (pgserver creates these outside the repo, but just in case)
+.pgdata/
+.pgvenv/
+probe*.sql

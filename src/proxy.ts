@@ -31,8 +31,12 @@ function buildCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: " + (supabaseUrl ? `${supabaseUrl} ` : "") + "https:",
     "font-src 'self' data:",
-    `connect-src 'self' ${supabaseUrl} ${supabaseUrl.replace("https://", "wss://")} ${isDev ? "ws: http://localhost:*" : ""}`.trim(),
-    "frame-ancestors 'none'",
+    // `ws:` alone does not cover a secure preview origin: the HMR socket there is `wss:`,
+    // so without it the live preview loads the page but never connects.
+    `connect-src 'self' ${supabaseUrl} ${supabaseUrl.replace("https://", "wss://")} ${isDev ? "ws: wss: http://localhost:*" : ""}`.trim(),
+    // Production: no framing at all. Development: the app is embedded by the sandbox
+    // preview, so an iframe that is refused would show this as a broken page.
+    isDev ? "frame-ancestors 'self' https: http:" : "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'",

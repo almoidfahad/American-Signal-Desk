@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Wordmark } from "@/components/brand";
 import { NotConfigured } from "@/components/ui/states";
+import {
+  ChartIcon,
+  FileTextIcon,
+  ShieldIcon,
+  StarIcon,
+  UsersIcon,
+} from "@/components/ui/icons";
 import { AdminLoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -10,73 +18,130 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+const CAPABILITIES = [
+  { label: "News Management", detail: "Draft -> review -> publish", Icon: FileTextIcon },
+  { label: "User Management", detail: "Role-based access", Icon: UsersIcon },
+  { label: "Audit Trail", detail: "Append-only records", Icon: ChartIcon },
+  { label: "Secure Access", detail: "MFA enforced", Icon: ShieldIcon },
+];
+
+/**
+ * Admin sign-in.
+ *
+ * Two-panel layout from the editorial reference. Two deliberate departures from the mockup:
+ *
+ *  1. The federated sign-in row (Google / Microsoft / GitHub) is not drawn unless those
+ *     providers are actually configured. Buttons that do nothing are worse than absent ones:
+ *     a newsroom editor who clicks "Microsoft" and is silently bounced will report the
+ *     system as broken, and they would be right.
+ *  2. When Supabase Auth is not configured, the form is replaced by an explicit notice.
+ *     There is no development bypass and no fake success path.
+ */
 export default function AdminLoginPage() {
   const configured = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   );
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-2">
+    <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
       {/* Brand panel */}
-      <aside className="relative hidden flex-col justify-between bg-navy-950 p-10 lg:flex">
-        <Wordmark variant="light" size="lg" />
-        <div>
-          <p className="inline-block rounded bg-signal-600 px-2 py-1 text-xs font-bold tracking-wide text-white uppercase">
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-navy-950 p-10 text-white on-dark lg:flex">
+        {/* Capitol silhouette suggested with layered shapes - no image request, stays crisp */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 opacity-40"
+        >
+          <div className="absolute bottom-0 left-1/2 h-full w-[520px] -translate-x-1/2 rounded-t-[999px] bg-gradient-to-t from-navy-800 via-navy-900 to-transparent" />
+          <div className="absolute bottom-0 left-1/2 h-[45%] w-[320px] -translate-x-1/2 bg-gradient-to-t from-navy-700 to-transparent" />
+          <div className="absolute bottom-0 left-0 h-1/3 w-full bg-gradient-to-t from-signal-900/40 to-transparent" />
+        </div>
+
+        <div className="relative">
+          <Wordmark variant="light" size="lg" />
+        </div>
+
+        <div className="relative">
+          <p className="inline-block rounded bg-signal-600 px-2.5 py-1 text-caption font-extrabold tracking-[0.12em] text-white uppercase">
             Welcome to
           </p>
-          <h1 className="mt-3 font-serif text-4xl font-extrabold text-white">
-            American <span className="text-signal-500">Signal Desk</span>
+          <h1 className="mt-3 text-display leading-[1.05] font-extrabold tracking-tight">
+            American
+            <br />
+            <span className="text-signal-500">Signal Desk</span>
           </h1>
-          <p className="mt-2 border-t border-navy-700 pt-3 font-serif text-2xl text-navy-100">
+          <p className="mt-3 flex items-center gap-3 font-serif text-dek text-navy-100">
+            <span aria-hidden="true" className="h-px w-8 bg-navy-600" />
             Admin Panel
+            <span aria-hidden="true" className="h-px flex-1 bg-navy-600" />
           </p>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-navy-300">
-            Manage news, users and content with ease. Every privileged action is authorised on the
-            server and written to an append-only audit log.
+          <p className="mt-4 max-w-sm text-small leading-relaxed text-navy-300">
+            Manage news, users and content with ease. Every privileged action is authorised on
+            the server and written to an append-only audit log.
           </p>
         </div>
-        <dl className="grid grid-cols-2 gap-3">
-          {[
-            ["News Management", "Draft → review → publish"],
-            ["User Management", "Role-based access"],
-            ["Audit Trail", "Append-only records"],
-            ["Secure Access", "MFA enforced"],
-          ].map(([label, detail]) => (
-            <div key={label} className="rounded-md bg-navy-900/70 p-3 ring-1 ring-navy-800">
-              <dt className="text-xs font-bold text-white">{label}</dt>
-              <dd className="mt-1 text-[11px] text-navy-400">{detail}</dd>
+
+        <dl className="relative grid grid-cols-2 gap-2.5 xl:grid-cols-4">
+          {CAPABILITIES.map((capability) => (
+            <div
+              key={capability.label}
+              className="rounded-md bg-navy-900/80 p-3 ring-1 ring-navy-800 backdrop-blur-sm"
+            >
+              <dt className="flex items-center gap-1.5 text-caption font-bold text-white">
+                <capability.Icon className="h-3.5 w-3.5 shrink-0 text-signal-500" />
+                {capability.label}
+              </dt>
+              <dd className="mt-1 text-micro leading-snug text-navy-300">
+                {capability.detail}
+              </dd>
             </div>
           ))}
         </dl>
-        <p className="text-[10px] tracking-[0.3em] text-navy-500 uppercase">
+
+        <p className="relative text-micro tracking-[0.32em] text-navy-500 uppercase">
           Inform &bull; Empower &bull; Inspire
         </p>
       </aside>
 
       {/* Form panel */}
-      <main className="flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          <div className="rounded-xl bg-white p-8 ring-1 ring-navy-100">
+      <main className="flex flex-col justify-center bg-navy-50 px-4 py-10 sm:px-8">
+        <div className="mx-auto w-full max-w-[430px]">
+          <div className="mb-6 flex justify-center lg:hidden">
+            <Wordmark size="md" />
+          </div>
+
+          <div className="rounded-xl bg-white p-7 shadow-xl shadow-navy-900/5 ring-1 ring-navy-100 sm:p-8">
             <div className="text-center">
-              <h2 className="text-2xl font-extrabold text-navy-900">Admin Panel Login</h2>
-              <p className="mt-1 text-sm text-navy-600">Sign in to your account to continue</p>
+              <span
+                aria-hidden="true"
+                className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-navy-900 text-white"
+              >
+                <ShieldIcon className="h-6 w-6" />
+              </span>
+              <h2 className="mt-3 text-heading leading-tight font-extrabold text-navy-900">
+                Admin Panel Login
+              </h2>
+              <p className="mt-1 text-small text-navy-600">Sign in to your account to continue</p>
+              <div aria-hidden="true" className="mt-5 flex items-center gap-3">
+                <span className="h-px flex-1 bg-navy-100" />
+                <StarIcon className="h-3.5 w-3.5 text-signal-600" />
+                <span className="h-px flex-1 bg-navy-100" />
+              </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-5">
               {configured ? (
                 <AdminLoginForm />
               ) : (
                 <NotConfigured
                   feature="Sign in"
                   requiredEnv={["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"]}
-                  detail="Authentication is provided by Supabase Auth and is not configured in this environment. Sign-in is disabled rather than simulated — there is no development bypass."
+                  detail="Authentication is provided by Supabase Auth and is not configured in this environment. Sign-in is disabled rather than simulated - there is no development bypass."
                 />
               )}
             </div>
 
-            {/* Federated providers are listed only once they are actually configured. */}
             {configured && (
-              <p className="mt-6 text-center text-[11px] leading-relaxed text-navy-500">
+              <p className="mt-5 text-center text-caption leading-relaxed text-navy-500">
                 Federated sign-in (Google, Microsoft, GitHub) appears here once the providers are
                 enabled in Supabase Auth. Adding a button before the provider works would be
                 misleading, so it is omitted.
@@ -84,8 +149,37 @@ export default function AdminLoginPage() {
             )}
           </div>
 
-          <p className="mt-4 text-center text-[11px] text-navy-500">
+          <div className="mt-5 rounded-lg bg-white p-3 text-center ring-1 ring-navy-100">
+            <p className="flex items-center justify-center gap-1.5 text-caption font-bold text-navy-900">
+              <ShieldIcon className="h-3.5 w-3.5 shrink-0 text-verify-600" />
+              Server-authorised access
+            </p>
+            <p className="mt-0.5 text-micro leading-snug text-navy-500">
+              Authorisation is enforced on the server for every page and action - not by hiding
+              buttons.
+            </p>
+          </div>
+
+          <p className="mt-4 text-center text-micro text-navy-500">
             &copy; {new Date().getFullYear()} American Signal Desk. All rights reserved.
+            <span className="mx-1.5" aria-hidden="true">
+              |
+            </span>
+            <Link href="/privacy" className="hover:underline">
+              Privacy
+            </Link>
+            <span className="mx-1.5" aria-hidden="true">
+              |
+            </span>
+            <Link href="/terms" className="hover:underline">
+              Terms
+            </Link>
+            <span className="mx-1.5" aria-hidden="true">
+              |
+            </span>
+            <Link href="/contact" className="hover:underline">
+              Contact
+            </Link>
           </p>
         </div>
       </main>

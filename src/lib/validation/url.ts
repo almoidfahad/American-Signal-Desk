@@ -16,7 +16,7 @@ const ALLOWED_PROTOCOLS = new Set(["http:", "https:"]);
 export const httpUrlSchema = z
   .string()
   .trim()
-  .max(2048, "URL খুব বড়।")
+  .max(2048, "That URL is too long.")
   .refine((value) => {
     let parsed: URL;
     try {
@@ -29,7 +29,7 @@ export const httpUrlSchema = z
     if (parsed.username || parsed.password) return false;
     // A bare host with no path is fine, but the host must be non-empty.
     return parsed.hostname.length > 0;
-  }, "শুধুমাত্র http:// অথবা https:// লিংক ব্যবহার করুন।");
+  }, "Use an http:// or https:// link only.");
 
 /** Optional variant for nullable columns. */
 export const optionalHttpUrlSchema = httpUrlSchema.nullish();

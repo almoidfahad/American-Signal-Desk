@@ -1,3 +1,6 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 export interface TickerItem {
@@ -9,36 +12,101 @@ export interface TickerItem {
 /**
  * Breaking-news ticker.
  *
- * Server-rendered with no marquee animation: an auto-scrolling bar is an accessibility
- * hazard and cannot be paused easily. Instead the latest item leads and the rest are
- * reachable by scrolling, with a labelled landmark.
- *
- * When there is no real breaking news, this component renders nothing rather than
- * inventing headlines.
+ * Accessibility decisions, deliberately made against the usual marquee:
+ *   - no automatic scrolling. A bar that moves on its own is hard to read, impossible to
+ *     pause with a keyboard, and a vestibular-trigger hazard. Instead the reader steps
+ *     through items with real buttons.
+ *   - it is a labelled region with an aria-live="polite" announcement, so a screen reader
+ *     hears "Breaking news" once rather than on every rotation.
+ *   - when there is no breaking news it renders nothing. It never invents a headline to
+ *     fill the bar.
  */
 export function BreakingTicker({ items }: { items: TickerItem[] }) {
-  if (items.length === 0) return null;
-  const [lead, ...rest] = items;
-  if (!lead) return null;
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const regionRef = useRef<HTMLElement | null>(null);
+
+  const count = items.length;
+
+  const step = useCallback(
+    (delta: number) => {
+      if (count === 0) return;
+      setIndex((current) => (current + delta + count) % count);
+    },
+    [count],
+  );
+
+  // Advance only while the pointer is not over the bar and the page is visible.
+  useEffect(() => {
+    if (count < 2 || paused) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        setIndex((current) => (current + 1) % count);
+      }
+    }, 7000);
+    return () => window.clearInterval(timer);
+  }, [count, paused]);
+
+  if (count === 0) return null;
+
+  const current = items[index];
+  if (!current) return null;
 
   return (
-    <section aria-label="Breaking news" className="bg-signal-700 text-white">
-      <div className="mx-auto flex max-w-[1560px] items-center gap-4 px-4 py-2.5 sm:px-6">
-        <span className="flex shrink-0 items-center gap-1.5 text-xs font-bold tracking-widest uppercase">
-          <span aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-white" />
+    <section
+      ref={regionRef}
+      aria-label="Breaking news"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+      className="bg-signal-700 text-white on-dark"
+    >
+      <div className="shell flex items-center gap-3 py-2">
+        <p className="flex shrink-0 items-center gap-2 text-caption font-extrabold tracking-[0.14em] uppercase">
+          <span aria-hidden="true" className="live-dot" />
           Breaking News
-        </span>
-        <div className="min-w-0 flex-1 overflow-x-auto">
-          <ul className="flex items-center gap-6 text-sm whitespace-nowrap">
-            {[lead, ...rest].map((item) => (
-              <li key={item.id}>
-                <Link href={item.href} className="hover:underline">
-                  {item.headline}
-                </Link>
-              </li>
-            ))}
-          </ul>
+        </p>
+
+        <span aria-hidden="true" className="hidden h-4 w-px bg-white/40 sm:block" />
+
+        <div className="min-w-0 flex-1" aria-live="polite" aria-atomic="true">
+          <Link
+            href={current.href}
+            className="block truncate text-small font-semibold hover:underline sm:text-body"
+          >
+            {current.headline}
+          </Link>
         </div>
+
+        {count > 1 && (
+          <div className="flex shrink-0 items-center gap-1">
+            <span className="sr-only">
+              Story {index + 1} of {count}
+            </span>
+            <button
+              type="button"
+              onClick={() => step(-1)}
+              className="flex h-7 w-7 items-center justify-center rounded hover:bg-white/15"
+            >
+              <span aria-hidden="true">&lsaquo;</span>
+              <span className="sr-only">Previous breaking story</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => step(1)}
+              className="flex h-7 w-7 items-center justify-center rounded hover:bg-white/15"
+            >
+              <span aria-hidden="true">&rsaquo;</span>
+              <span className="sr-only">Next breaking story</span>
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -4,8 +4,11 @@
  * This file exists so the UI can be reviewed before a database is provisioned.
  * Every value here is synthetic. It is only ever returned when:
  *   1. Supabase is not configured, AND
- *   2. we are not running a production build.
- * In production the content layer throws instead of inventing news — see repository.ts.
+ *   2. either we are not running a production build, or the operator has explicitly set
+ *      ASD_ALLOW_SAMPLE_CONTENT=1 to review the interface on a production build.
+ * Otherwise the content layer reports `unavailable` instead of inventing news. In every
+ * demo case `isDemoData` is true, which forces the "Sample content - not real reporting"
+ * banner on the public pages. See repository.ts.
  */
 import type { Article, ArticleCard, Category, HomePageData } from "./types";
 
@@ -182,14 +185,62 @@ function toCard(article: Article): ArticleCard {
   return card;
 }
 
+/**
+ * Extra samples used only to fill the below-the-fold band. They exist because the homepage
+ * layout has five distinct slots - lead, three secondary, four picks, then More Stories - and
+ * with eight samples the last band silently repeated Editor's Picks. Ten is the smallest
+ * number that gives every slot its own story.
+ *
+ * Every field is synthetic and every record carries the same "Sample content" wording a
+ * reader sees in the banner at the top of the page.
+ */
+const DEMO_EXTRA: Article[] = [
+  {
+    slug: "sample-infrastructure-bill",
+    title: "Infrastructure Bill Advances Through Committee",
+    dek: "Placeholder article about a transport funding package.",
+    bodyHtml: "<p><strong>Sample content.</strong> Placeholder body.</p>",
+    categorySlug: "politics",
+    categoryName: "Politics",
+    publishedAt: "2026-11-05T14:00:00.000Z",
+    updatedAt: null,
+    readingMinutes: 4,
+    imageUrl: null,
+    imageAlt: "Placeholder image for infrastructure article",
+    author: DEMO_AUTHOR,
+    tags: ["sample"],
+    aiProvenance: null,
+  },
+  {
+    slug: "sample-education-grants",
+    title: "States Expand Early-Education Grant Program",
+    dek: "Placeholder article describing a state-level education programme.",
+    bodyHtml: "<p><strong>Sample content.</strong> Placeholder body.</p>",
+    categorySlug: "us-news",
+    categoryName: "U.S. News",
+    publishedAt: "2026-11-05T09:00:00.000Z",
+    updatedAt: null,
+    readingMinutes: 3,
+    imageUrl: null,
+    imageAlt: "Placeholder image for education article",
+    author: DEMO_AUTHOR,
+    tags: ["sample"],
+    aiProvenance: null,
+  },
+];
+
 export function demoHomePage(): HomePageData {
-  const cards = DEMO_ARTICLES.map(toCard);
+  const cards = [...DEMO_ARTICLES, ...DEMO_EXTRA].map(toCard);
   const [lead, ...rest] = cards;
   if (!lead) throw new Error("Demo content is empty");
   return {
     lead,
     secondary: rest.slice(0, 3),
-    latest: cards.slice(1),
+    // "latest" is the below-the-fold band, so it must not repeat the lead, the three
+    // stories already stacked in the "Latest" rail beside it, or the four in Editor's Picks
+    // - which sit directly above it. Overlapping sections read as a bug in the rendered
+    // page, and on a real homepage they would be one.
+    latest: rest.slice(7),
     editorsPicks: cards.slice(4, 8),
     mostRead: cards.slice(0, 5).map((a) => ({ title: a.title, slug: a.slug })),
     categories: DEMO_CATEGORIES,
@@ -199,5 +250,9 @@ export function demoHomePage(): HomePageData {
 }
 
 export function demoArticle(slug: string): Article | null {
-  return DEMO_ARTICLES.find((a) => a.slug === slug) ?? null;
+  return (
+    DEMO_ARTICLES.find((a) => a.slug === slug) ??
+    DEMO_EXTRA.find((a) => a.slug === slug) ??
+    null
+  );
 }

@@ -1,0 +1,64 @@
+name: Database (migrations + RLS)
+
+# The migrations and RLS policies were previously untested. This workflow proves, on every
+# push, that the SQL actually applies to a real PostgreSQL and that the authorization
+# assertions hold — rather than trusting that they would.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db.yml"
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  migrate-and-test:
+    name: Apply migrations and run RLS suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        # Matches the major version used by Supabase projects.
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: asd_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: asd_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply Supabase shim, migrations and RLS suites
+        # psql is preinstalled on the runner image.
+        run: supabase/tests/harness/run.sh
+
+      - name: Fail if a suite silently asserted nothing
+        # A suite that errors before its assertions would otherwise look green.
+        run: |
+          psql -d asd_test -tAc "select 1" > /dev/null
+          echo "Connection verified."

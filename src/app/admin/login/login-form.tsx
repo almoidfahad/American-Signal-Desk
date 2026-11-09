@@ -70,7 +70,7 @@ export function AdminLoginForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
       <div>
-        <label htmlFor="email" className="block text-xs font-semibold text-navy-700">
+        <label htmlFor="email" className="block text-caption font-semibold text-navy-700">
           Email Address
         </label>
         <input
@@ -80,13 +80,13 @@ export function AdminLoginForm() {
           required
           autoComplete="username"
           aria-describedby={error ? "login-error" : undefined}
-          className="mt-1 h-11 w-full rounded-md border border-navy-200 px-3 text-sm"
+          className="mt-1 h-11 w-full rounded-md border border-navy-200 px-3 text-body"
           disabled={pending}
         />
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-xs font-semibold text-navy-700">
+        <label htmlFor="password" className="block text-caption font-semibold text-navy-700">
           Password
         </label>
         <div className="relative mt-1">
@@ -97,13 +97,13 @@ export function AdminLoginForm() {
             required
             autoComplete="current-password"
             aria-describedby={error ? "login-error" : undefined}
-            className="h-11 w-full rounded-md border border-navy-200 px-3 pr-20 text-sm"
+            className="h-11 w-full rounded-md border border-navy-200 px-3 pr-20 text-body"
             disabled={pending}
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute inset-y-0 right-2 my-auto h-7 rounded px-2 text-[11px] font-semibold text-navy-600 hover:bg-navy-50"
+            className="absolute inset-y-0 right-2 my-auto h-7 rounded px-2 text-caption font-semibold text-navy-600 hover:bg-navy-50"
             aria-pressed={showPassword}
           >
             {showPassword ? "Hide" : "Show"}
@@ -111,7 +111,7 @@ export function AdminLoginForm() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-xs">
+      <div className="flex items-center justify-between text-caption">
         <label className="flex items-center gap-2 text-navy-700">
           <input type="checkbox" name="remember" className="h-4 w-4 rounded border-navy-300" />
           Remember me
@@ -122,7 +122,7 @@ export function AdminLoginForm() {
       </div>
 
       {error && (
-        <p id="login-error" role="alert" className="rounded-md bg-signal-50 px-3 py-2 text-xs text-signal-800 ring-1 ring-signal-200">
+        <p id="login-error" role="alert" className="rounded-md bg-signal-50 px-3 py-2 text-caption text-signal-800 ring-1 ring-signal-200">
           {error}
         </p>
       )}
@@ -130,12 +130,12 @@ export function AdminLoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="h-11 w-full rounded-md bg-signal-600 text-sm font-bold text-white hover:bg-signal-700 disabled:opacity-60"
+        className="h-11 w-full rounded-md bg-signal-600 text-body font-bold text-white hover:bg-signal-700 disabled:opacity-60"
       >
         {pending ? "Signing in…" : "Sign In"}
       </button>
 
-      <p className="border-t border-navy-100 pt-3 text-center text-[11px] leading-relaxed text-navy-500">
+      <p className="border-t border-navy-100 pt-3 text-center text-caption leading-relaxed text-navy-500">
         Accounts are provisioned by invitation. Multi-factor authentication is required for
         privileged roles.
       </p>

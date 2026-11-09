@@ -1,22 +1,46 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArticleCard, CompactPick, LeadStory, MetaLine } from "@/components/news/article-card";
+import {
+  ArticleCard,
+  CompactPick,
+  HeadlineRow,
+  LeadStory,
+  MetaLine,
+} from "@/components/news/article-card";
+import { NewsletterForm } from "@/components/news/newsletter-form";
 import { NoticeBanner } from "@/components/ui/states";
+import { MailIcon, StarIcon, TrendingIcon } from "@/components/ui/icons";
 import { getHomePage } from "@/server/content/repository";
+
+/**
+ * Public homepage.
+ *
+ * Layout follows the editorial reference: a lead story with artwork, a stack of secondary
+ * stories beside it, and a right rail carrying trending, newsletter and most-read. Below
+ * the fold: editor's picks as a four-up strip, then a two-column "more stories / browse
+ * categories" band.
+ *
+ * Honesty: when the content layer has no database, the page says so at the top and renders
+ * no stories. Every rail that would otherwise be empty shows an explicit empty state rather
+ * than filler. Nothing on this page is invented to make the layout look finished.
+ */
 
 // Public homepage caches for 60s and is revalidated by tag when an article publishes.
 export const revalidate = 60;
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
+  description:
+    "American Signal Desk — breaking news, in-depth analysis and expert insight on the issues shaping the United States.",
 };
 
 export default async function HomePage() {
   const data = await getHomePage();
   const hasContent = data.lead.slug !== "";
+  const categories = data.categories.length > 0 ? data.categories : null;
 
   return (
-    <div className="space-y-8">
+    <div className="shell space-y-8 py-6">
       {data.isUnavailable && (
         <NoticeBanner tone="danger" title="Content service is not configured">
           This deployment has no editorial database connected, so no articles can be displayed.
@@ -44,8 +68,8 @@ export default async function HomePage() {
         </NoticeBanner>
       )}
 
+      {/* ---------------- Lead band ---------------- */}
       <div className="grid gap-6 lg:grid-cols-12">
-        {/* Lead + latest */}
         <section aria-labelledby="lead-heading" className="lg:col-span-6">
           <h1 id="lead-heading" className="sr-only">
             Top stories
@@ -53,167 +77,141 @@ export default async function HomePage() {
           <LeadStory article={data.lead} />
         </section>
 
-        {/* Secondary stack */}
-        <section aria-labelledby="secondary-heading" className="lg:col-span-4">
-          <h2
-            id="secondary-heading"
-            className="mb-3 border-b-2 border-navy-900 pb-1 text-sm font-bold tracking-widest text-navy-900 uppercase"
-          >
+        <section aria-labelledby="latest-heading" className="lg:col-span-3">
+          <h2 id="latest-heading" className="section-label">
             Latest
           </h2>
           {data.secondary.length > 0 ? (
-            <div className="space-y-5">
-              {data.secondary.map((a) => (
-                <ArticleCard key={a.slug} article={a} />
+            <div className="mt-4 space-y-5">
+              {data.secondary.slice(0, 4).map((article) => (
+                <ArticleCard key={article.slug} article={article} />
               ))}
             </div>
           ) : (
-            <p className="text-sm text-navy-500">No additional stories yet.</p>
+            <p className="mt-4 text-body text-navy-500">No additional stories yet.</p>
           )}
         </section>
 
-        {/* Right rail: trending + newsletter */}
-        <aside aria-label="Trending and newsletter" className="space-y-6 lg:col-span-2">
-          <section aria-labelledby="trending-heading" className="rounded-lg ring-1 ring-navy-100">
+        <aside aria-label="Trending, newsletter and most read" className="space-y-5 lg:col-span-3">
+          <section
+            aria-labelledby="trending-heading"
+            className="overflow-hidden rounded-card ring-1 ring-navy-100"
+          >
             <h2
               id="trending-heading"
-              className="border-b border-navy-100 px-4 py-2.5 text-xs font-bold tracking-widest text-signal-700 uppercase"
+              className="flex items-center gap-1.5 border-b border-navy-100 bg-navy-50/60 px-4 py-2.5 text-caption font-extrabold tracking-[0.14em] text-navy-900 uppercase"
             >
+              <TrendingIcon className="h-3.5 w-3.5 text-signal-600" />
               Trending Now
             </h2>
-            <ol className="divide-y divide-navy-50">
-              {data.mostRead.map((item, index) => (
-                <li key={item.slug} className="flex gap-3 px-4 py-3">
-                  <span
-                    aria-hidden="true"
-                    className="text-sm font-extrabold text-signal-600 tabular-nums"
-                  >
-                    {index + 1}
-                  </span>
-                  <Link
-                    href={`/article/${item.slug}`}
-                    className="text-[13px] leading-snug font-semibold text-navy-800 hover:text-signal-700"
-                  >
-                    {item.title}
-                  </Link>
-                </li>
-              ))}
-              {data.mostRead.length === 0 && (
-                <li className="px-4 py-3 text-sm text-navy-500">Nothing trending yet.</li>
-              )}
-            </ol>
+            {data.mostRead.length > 0 ? (
+              <ol className="space-y-3 px-4 py-4">
+                {data.mostRead.slice(0, 5).map((item, index) => (
+                  <HeadlineRow
+                    key={item.slug}
+                    index={index}
+                    article={{
+                      slug: item.slug,
+                      title: item.title,
+                      dek: "",
+                      categorySlug: "",
+                      categoryName: "",
+                      publishedAt: null,
+                      readingMinutes: 0,
+                      imageUrl: null,
+                      imageAlt: "",
+                      author: null,
+                    }}
+                  />
+                ))}
+              </ol>
+            ) : (
+              <p className="px-4 py-4 text-body text-navy-500">Nothing trending yet.</p>
+            )}
           </section>
 
-          <section aria-labelledby="newsletter-heading" className="rounded-lg bg-navy-900 p-4">
-            <h2 id="newsletter-heading" className="text-sm font-bold text-white">
+          <section aria-labelledby="newsletter-heading" className="rounded-card bg-navy-900 p-4 on-dark">
+            <h2
+              id="newsletter-heading"
+              className="flex items-center gap-2 text-small font-bold text-white"
+            >
+              <MailIcon className="h-4 w-4 text-signal-500" />
               Newsletter Signup
             </h2>
-            <p className="mt-1 text-xs text-navy-200">
+            <p className="mt-1 text-caption text-navy-300">
               Get the latest news delivered to your inbox.
             </p>
-            <NewsletterForm />
+            <NewsletterForm source="homepage-rail" />
           </section>
         </aside>
       </div>
 
-      {/* Editor's picks */}
+      {/* ---------------- Editor's picks ---------------- */}
       {data.editorsPicks.length > 0 && (
-        <section aria-labelledby="picks-heading" className="rounded-lg ring-1 ring-navy-100">
+        <section
+          aria-labelledby="picks-heading"
+          className="overflow-hidden rounded-card ring-1 ring-navy-100"
+        >
           <h2
             id="picks-heading"
-            className="flex items-center gap-2 border-b border-navy-100 px-4 py-3 text-sm font-bold tracking-widest text-navy-900 uppercase"
+            className="flex items-center gap-2 border-b border-navy-100 px-4 py-3 text-caption font-extrabold tracking-[0.14em] text-navy-900 uppercase"
           >
-            <span aria-hidden="true" className="text-signal-600">
-              ★
-            </span>
+            <StarIcon className="h-3.5 w-3.5 text-signal-600" />
             Editor&apos;s Picks
           </h2>
           <div className="grid gap-5 p-4 sm:grid-cols-2 lg:grid-cols-4">
-            {data.editorsPicks.map((a) => (
-              <CompactPick key={a.slug} article={a} />
+            {data.editorsPicks.slice(0, 4).map((article) => (
+              <CompactPick key={article.slug} article={article} />
             ))}
           </div>
         </section>
       )}
 
-      {/* Latest news list */}
-      {data.latest.length > 0 && (
-        <section aria-labelledby="latest-heading" className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <h2
-              id="latest-heading"
-              className="mb-3 border-b-2 border-navy-900 pb-1 text-sm font-bold tracking-widest text-navy-900 uppercase"
-            >
-              More Stories
-            </h2>
-            <div className="divide-y divide-navy-50">
-              {data.latest.map((a) => (
-                <div key={a.slug} className="py-4">
-                  <ArticleCard article={a} />
-                  {a.dek && <p className="mt-2 text-sm text-navy-600">{a.dek}</p>}
-                  <MetaLine article={a} />
+      {/* ---------------- More stories + categories ---------------- */}
+      <div className="grid gap-6 lg:grid-cols-12">
+        <section aria-labelledby="more-heading" className="lg:col-span-8">
+          <h2 id="more-heading" className="section-label">
+            More Stories
+          </h2>
+          {data.latest.length > 0 ? (
+            <div className="mt-4 divide-y divide-navy-100">
+              {data.latest.slice(0, 6).map((article) => (
+                <div key={article.slug} className="py-4 first:pt-0">
+                  <ArticleCard article={article} showDek />
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <p className="mt-4 text-body text-navy-500">No more stories right now.</p>
+          )}
+        </section>
 
-          <section aria-labelledby="categories-heading" className="rounded-lg ring-1 ring-navy-100">
-            <h2
-              id="categories-heading"
-              className="border-b border-navy-100 px-4 py-2.5 text-xs font-bold tracking-widest text-navy-900 uppercase"
-            >
-              Browse Categories
-            </h2>
-            <ul className="grid grid-cols-2 gap-px bg-navy-50">
-              {data.categories.map((c) => (
-                <li key={c.slug}>
+        <aside aria-labelledby="categories-heading" className="lg:col-span-4">
+          <h2 id="categories-heading" className="section-label">
+            Popular Categories
+          </h2>
+          {categories ? (
+            <ul className="mt-4 grid grid-cols-2 gap-2">
+              {categories.map((category) => (
+                <li key={category.slug}>
                   <Link
-                    href={`/category/${c.slug}`}
-                    className="block bg-white px-3 py-3 text-[13px] font-semibold text-navy-800 hover:bg-navy-50"
+                    href={`/category/${category.slug}`}
+                    className="flex h-full items-center gap-2 rounded-md bg-navy-50 px-3 py-3 text-caption font-semibold text-navy-800 transition-colors hover:bg-navy-100 hover:text-signal-700"
                   >
-                    {c.name}
+                    <span
+                      aria-hidden="true"
+                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-signal-600"
+                    />
+                    {category.name}
                   </Link>
                 </li>
               ))}
             </ul>
-          </section>
-        </section>
-      )}
+          ) : (
+            <p className="mt-4 text-body text-navy-500">Categories are not available.</p>
+          )}
+        </aside>
+      </div>
     </div>
-  );
-}
-
-/**
- * Newsletter capture.
- *
- * Deliberately a plain form posting to a server action (added in Phase 4). It is not wired
- * to a fake success toast — until the subscription endpoint exists, submitting shows an
- * honest "not yet connected" message.
- */
-function NewsletterForm() {
-  return (
-    <form action="/api/v1/newsletter/subscribe" method="post" className="mt-3 space-y-2">
-      <label htmlFor="newsletter-email" className="sr-only">
-        Email address
-      </label>
-      <input
-        id="newsletter-email"
-        name="email"
-        type="email"
-        required
-        autoComplete="email"
-        placeholder="Enter your email address"
-        className="h-9 w-full rounded border border-navy-700 bg-white px-2.5 text-xs text-navy-900 placeholder:text-navy-400"
-      />
-      <button
-        type="submit"
-        className="h-9 w-full rounded bg-signal-600 text-xs font-bold text-white hover:bg-signal-700"
-      >
-        Subscribe
-      </button>
-      <p className="text-[10px] leading-snug text-navy-300">
-        By subscribing you agree to our privacy policy. Unsubscribe at any time.
-      </p>
-    </form>
   );
 }

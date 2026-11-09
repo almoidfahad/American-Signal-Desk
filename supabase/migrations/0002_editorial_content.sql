@@ -244,7 +244,7 @@ returns table (
 language sql
 stable
 security invoker
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, extensions
 as $$
   select
     a.slug, a.title, a.dek,

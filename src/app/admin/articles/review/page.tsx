@@ -1,94 +1,111 @@
+import { SERVICE_ENV_VARS } from "@/server/db/client";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { statusClass } from "@/components/ui/styles";
+import { Badge, PageHeader } from "@/components/admin/ui";
+import { LinkButton } from "@/components/admin/ui";
 import { NotConfigured } from "@/components/ui/states";
-import { getAdminSession } from "@/server/auth/session";
 import { can } from "@/server/authz/permissions";
+import { requireAdminPage } from "@/server/admin/guard";
 import { listArticlesForActor } from "@/server/editorial/service";
 
-export const metadata: Metadata = { title: "রিভিউ কিউ" };
+export const metadata: Metadata = { title: "Review Queue" };
 export const dynamic = "force-dynamic";
 
+/**
+ * Review queue.
+ *
+ * Only reviewers may see it, and that check is repeated server-side on the article detail
+ * page and again in the transition action - landing here is not what grants review rights.
+ */
 export default async function ReviewQueuePage() {
-  const session = await getAdminSession();
-  if (!session) redirect("/admin/login");
+  const access = await requireAdminPage();
+  if (!access.ok) return access.node;
+  const session = access.session;
 
   const actor = { userId: session.userId, roles: session.roles };
 
-  // Only reviewers may see the queue. An author landing here is told so honestly.
   if (!can(actor, "article.review") && !can(actor, "article.approve")) {
     return (
       <div className="mx-auto max-w-lg py-16">
-        <h1 className="text-xl font-bold text-navy-900">রিভিউ কিউ দেখার অনুমতি নেই</h1>
-        <p className="mt-2 text-sm text-navy-600">
-          রিভিউ কিউ শুধু সম্পাদকদের জন্য। আপনার ভূমিকায় <code className="font-mono">article.review</code>{" "}
-          নেই।
+        <h1 className="text-dek font-bold text-navy-900">No access to the review queue</h1>
+        <p className="mt-2 text-small text-navy-600">
+          The review queue is for editors. Your role does not include{" "}
+          <code className="font-mono">article.review</code>.
         </p>
-        <Link href="/admin/articles" className="mt-4 inline-block text-sm font-semibold underline">
-          আপনার লেখার তালিকায় ফিরে যান
+        <Link
+          href="/admin/articles"
+          className="mt-4 inline-block text-small font-semibold text-navy-800 underline"
+        >
+          Back to your articles
         </Link>
       </div>
     );
   }
 
   const result = await listArticlesForActor(actor, { status: "pending_review", limit: 50 });
+  const count = result.ok ? result.data.items.length : 0;
 
   return (
     <div>
-      <h1 className="text-2xl font-extrabold text-navy-900">রিভিউ কিউ</h1>
-      <p className="mt-1 text-sm text-navy-600">
-        যে লেখাগুলো প্রকাশের অনুমোদনের অপেক্ষায় আছে। প্রতিটি সিদ্ধান্ত অডিট লগে সংরক্ষিত হয়।
-      </p>
+      <PageHeader
+        title="Review Queue"
+        description="Stories awaiting an approval decision. Every decision is recorded in the audit log."
+        actions={
+          <span className="rounded-md border border-navy-200 bg-white px-3 py-1.5 text-caption font-bold text-navy-800">
+            {result.ok ? `${count} awaiting review` : "Count unavailable"}
+          </span>
+        }
+      />
 
-      <div className="mt-5">
-        {!result.ok && result.code === "NOT_CONFIGURED" ? (
-          <NotConfigured
-            feature="রিভিউ কিউ"
-            requiredEnv={["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]}
-            detail="ডেটাবেস কনফিগার করা নেই, তাই কিউ খালি — এটি কোনো লুকানো ত্রুটি নয়।"
-          />
-        ) : !result.ok ? (
-          <p className="rounded-md bg-signal-50 px-4 py-3 text-sm text-signal-800 ring-1 ring-signal-300">
-            {result.message}
+      {!result.ok && result.code === "NOT_CONFIGURED" ? (
+        <NotConfigured
+          feature="Review queue"
+          requiredEnv={SERVICE_ENV_VARS}
+          detail="No database is configured, so the queue cannot be read. An empty queue here is a configuration gap, not a finished review cycle."
+        />
+      ) : !result.ok ? (
+        <p
+          role="alert"
+          className="rounded-md bg-signal-50 px-4 py-3 text-small text-signal-800 ring-1 ring-signal-300"
+        >
+          {result.message}
+        </p>
+      ) : count === 0 ? (
+        <div className="rounded-card bg-white px-6 py-14 text-center ring-1 ring-navy-100 shadow-sm">
+          <p className="text-body font-bold text-navy-900">The queue is clear</p>
+          <p className="mx-auto mt-1 max-w-sm text-small text-navy-600">
+            Nothing is waiting for review. Stories appear here as soon as an author submits one.
           </p>
-        ) : result.data.items.length === 0 ? (
-          <div className="rounded-lg bg-white px-6 py-12 text-center ring-1 ring-navy-100">
-            <p className="text-base font-semibold text-navy-900">কিউ খালি</p>
-            <p className="mt-1 text-sm text-navy-600">
-              রিভিউয়ের অপেক্ষায় কোনো লেখা নেই। লেখকরা জমা দিলে এখানে দেখা যাবে।
-            </p>
-          </div>
-        ) : (
-          <ul className="space-y-3">
-            {result.data.items.map((a) => (
-              <li key={a.id} className="rounded-lg bg-white p-4 ring-1 ring-navy-100">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <Link
-                      href={`/admin/articles/${a.id}`}
-                      className="text-base font-bold text-navy-900 hover:text-signal-700 hover:underline"
-                    >
-                      {a.title}
-                    </Link>
-                    <p className="mt-1 max-w-2xl text-sm text-navy-600">{a.dek || "—"}</p>
-                    <p className="mt-1 font-mono text-[11px] text-navy-400">/{a.slug}</p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <span className={statusClass("warning")}>রিভিউ অপেক্ষমাণ</span>
-                    <Link
-                      href={`/admin/articles/${a.id}`}
-                      className="rounded-md bg-navy-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-navy-800"
-                    >
-                      পর্যালোচনা করুন
-                    </Link>
-                  </div>
+        </div>
+      ) : (
+        <ul className="space-y-2.5">
+          {result.data.items.map((article) => (
+            <li
+              key={article.id}
+              className="rounded-card bg-white p-4 ring-1 ring-navy-100 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <Link
+                    href={`/admin/articles/${article.id}`}
+                    className="text-body leading-snug font-bold text-navy-900 hover:text-signal-700 hover:underline"
+                  >
+                    {article.title}
+                  </Link>
+                  <p className="mt-1 line-clamp-2 max-w-2xl text-small text-navy-600">
+                    {article.dek || "No summary provided."}
+                  </p>
+                  <p className="mt-1.5 font-mono text-micro text-navy-400">/{article.slug}</p>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Badge tone="amber">Awaiting review</Badge>
+                  <LinkButton href={`/admin/articles/${article.id}`}>Review</LinkButton>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

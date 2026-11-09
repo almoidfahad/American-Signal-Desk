@@ -31,15 +31,64 @@ interface Props {
   readOnly?: boolean;
 }
 
-function FieldError({ message }: { message?: string }) {
+const INPUT =
+  "mt-1 h-10 w-full rounded-md border border-navy-200 bg-white px-3 text-small text-navy-900 placeholder:text-navy-400 focus:border-navy-500";
+
+/**
+ * An inline field error.
+ *
+ * The `id` is required and not optional: an error that cannot be addressed by
+ * `aria-describedby` is only half-announced, and a *missing* id is exactly the bug
+ * this used to have — `aria-describedby="title-error"` pointing at an element that
+ * did not exist. Making the id mandatory means that mistake cannot compile.
+ *
+ * `role="alert"` still announces the message when it appears, so a reader is told
+ * twice over: once on appearance, and again when focus returns to the field.
+ */
+function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
-    <p role="alert" className="mt-1 text-xs font-medium text-signal-700">
+    <p id={id} role="alert" className="mt-1 text-caption font-semibold text-signal-700">
       {message}
     </p>
   );
 }
 
+function Label({
+  htmlFor,
+  children,
+  required,
+  hint,
+}: {
+  htmlFor: string;
+  children: React.ReactNode;
+  required?: boolean;
+  hint?: string;
+}) {
+  return (
+    <label htmlFor={htmlFor} className="block text-small font-bold text-navy-900">
+      {children}
+      {required && (
+        <span className="ml-0.5 text-signal-600" aria-hidden="true">
+          *
+        </span>
+      )}
+      {hint && <span className="ml-1 font-normal text-navy-500">{hint}</span>}
+    </label>
+  );
+}
+
+/**
+ * Article editor.
+ *
+ * The slug derives from the title until the author edits it, then stops - silently rewriting
+ * a URL an author has typed would be the kind of help that costs trust. Once published, the
+ * slug is immutable; the field is read-only for published copy rather than merely validated,
+ * because a changed URL orphans every inbound link.
+ *
+ * The body is authored as HTML and sanitised server-side at render. The hint below says so
+ * plainly rather than implying the textarea is safe to paste anything into.
+ */
 export function ArticleForm({ mode, action, article, categories, readOnly = false }: Props) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(action, null);
@@ -49,7 +98,6 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
   const [slugTouched, setSlugTouched] = useState(mode === "edit");
   const [body, setBody] = useState(article?.bodyHtml ?? "");
 
-  // In create mode the slug follows the title until the author edits it manually.
   const effectiveSlug = slugTouched ? slug : slugify(title);
 
   useEffect(() => {
@@ -61,6 +109,11 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
   }, [state, router]);
 
   const fieldErrors = state?.fieldErrors ?? {};
+  const wordCount = body
+    .replace(/<[^>]*>/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
 
   return (
     <form action={formAction} className="space-y-5" noValidate>
@@ -69,9 +122,9 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
       {state && (
         <p
           role="status"
-          className={`rounded-md px-3 py-2 text-sm ring-1 ${
+          className={`rounded-md px-3 py-2 text-small font-medium ring-1 ${
             state.ok
-              ? "bg-verify-500/10 text-verify-600 ring-verify-500/30"
+              ? "bg-verify-50 text-verify-600 ring-verify-500/30"
               : "bg-signal-50 text-signal-800 ring-signal-300"
           }`}
         >
@@ -80,141 +133,161 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
       )}
 
       {readOnly && (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900 ring-1 ring-amber-300">
-          প্রকাশিত লেখা সরাসরি সম্পাদনা করা যায় না। সংশোধনের জন্য প্রথমে লেখাটি ড্রাফটে ফিরিয়ে
-          আনুন — তাহলে পরিবর্তনটি ইতিহাসে সংরক্ষিত থাকবে।
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-small text-amber-900 ring-1 ring-amber-300">
+          Published articles can no longer be edited in place. To amend one, return it to draft
+          first so the change is recorded in the revision history.
         </p>
       )}
 
       <fieldset disabled={pending || readOnly} className="space-y-5">
         <div>
-          <label htmlFor="title" className="block text-sm font-semibold text-navy-900">
-            শিরোনাম <span className="text-signal-600">*</span>
-          </label>
+          <Label htmlFor="title" required>
+            Headline
+          </Label>
           <input
             id="title"
             name="title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(event) => setTitle(event.target.value)}
             required
             maxLength={300}
+            placeholder="What happened, in plain terms"
             aria-invalid={Boolean(fieldErrors.title)}
-            className="mt-1 h-11 w-full rounded-md border border-navy-200 px-3 text-sm"
+            aria-describedby={fieldErrors.title ? "title-error" : undefined}
+            className={`${INPUT} text-body font-semibold`}
           />
-          <FieldError message={fieldErrors.title} />
-        </div>
-
-        <div>
-          <label htmlFor="slug" className="block text-sm font-semibold text-navy-900">
-            স্লাগ (URL) <span className="text-signal-600">*</span>
-          </label>
-          <div className="mt-1 flex items-center rounded-md border border-navy-200 focus-within:ring-2 focus-within:ring-navy-400">
-            <span className="pl-3 font-mono text-xs text-navy-500">/article/</span>
-            <input
-              id="slug"
-              name="slug"
-              value={effectiveSlug}
-              onChange={(e) => {
-                setSlug(e.target.value);
-                setSlugTouched(true);
-              }}
-              required
-              maxLength={120}
-              aria-describedby="slug-help"
-              aria-invalid={Boolean(fieldErrors.slug)}
-              className="h-11 w-full rounded-r-md px-2 font-mono text-sm outline-none"
-            />
+          <div id="title-error">
+            <FieldError id="title-error" message={fieldErrors.title} />
           </div>
-          <p id="slug-help" className="mt-1 text-xs text-navy-500">
-            শুধু ছোট হাতের অক্ষর, সংখ্যা ও হাইফেন। এটি প্রকাশের পর আর বদলাবে না।
-          </p>
-          <FieldError message={fieldErrors.slug} />
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="slug" required>
+              URL slug
+            </Label>
+            <div className="mt-1 flex items-center rounded-md border border-navy-200 bg-white focus-within:border-navy-500">
+              <span className="pl-3 font-mono text-caption text-navy-400">/article/</span>
+              <input
+                id="slug"
+                name="slug"
+                value={effectiveSlug}
+                onChange={(event) => {
+                  setSlug(event.target.value);
+                  setSlugTouched(true);
+                }}
+                required
+                maxLength={120}
+                aria-describedby={fieldErrors.slug ? "slug-help slug-error" : "slug-help"}
+                aria-invalid={Boolean(fieldErrors.slug)}
+                className="h-10 w-full rounded-r-md px-2 font-mono text-small outline-none"
+              />
+            </div>
+            <p id="slug-help" className="mt-1 text-caption text-navy-500">
+              Lowercase letters, numbers and hyphens. Fixed once published.
+            </p>
+            <FieldError id="slug-error" message={fieldErrors.slug} />
+          </div>
+
+          <div>
+            <Label htmlFor="categoryId">Section</Label>
+            <select
+              id="categoryId"
+              name="categoryId"
+              defaultValue={article?.categoryId ?? ""}
+              className={INPUT}
+            >
+              <option value="">- Select a section -</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div>
-          <label htmlFor="dek" className="block text-sm font-semibold text-navy-900">
-            সারসংক্ষেপ
-          </label>
+          <Label htmlFor="dek" hint="(the standfirst under the headline)">
+            Summary
+          </Label>
           <textarea
             id="dek"
             name="dek"
             defaultValue={article?.dek ?? ""}
             rows={2}
             maxLength={400}
-            className="mt-1 w-full rounded-md border border-navy-200 px-3 py-2 text-sm"
+            placeholder="One or two sentences a reader could stop at."
+            aria-invalid={Boolean(fieldErrors.dek)}
+            aria-describedby={fieldErrors.dek ? "dek-error" : undefined}
+            className="mt-1 w-full rounded-md border border-navy-200 bg-white px-3 py-2 text-small focus:border-navy-500"
           />
-          <FieldError message={fieldErrors.dek} />
+          <FieldError id="dek-error" message={fieldErrors.dek} />
         </div>
 
         <div>
-          <label htmlFor="categoryId" className="block text-sm font-semibold text-navy-900">
-            বিভাগ
-          </label>
-          <select
-            id="categoryId"
-            name="categoryId"
-            defaultValue={article?.categoryId ?? ""}
-            className="mt-1 h-11 w-full rounded-md border border-navy-200 px-3 text-sm"
-          >
-            <option value="">— নির্বাচন করুন —</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <div className="flex items-baseline justify-between">
-            <label htmlFor="bodyHtml" className="block text-sm font-semibold text-navy-900">
-              লেখা (HTML)
-            </label>
-            <span className="text-xs text-navy-500">{body.length.toLocaleString("en-US")} অক্ষর</span>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <Label htmlFor="bodyHtml">Body</Label>
+            <span className="text-caption text-navy-500 tabular">
+              {body.length.toLocaleString("en-US")} characters
+              <span aria-hidden="true" className="mx-1.5">
+                *
+              </span>
+              ~{wordCount.toLocaleString("en-US")} words
+            </span>
           </div>
           <textarea
             id="bodyHtml"
             name="bodyHtml"
             value={body}
-            onChange={(e) => setBody(e.target.value)}
+            onChange={(event) => setBody(event.target.value)}
             rows={18}
-            className="mt-1 w-full rounded-md border border-navy-200 px-3 py-2 font-mono text-[13px] leading-relaxed"
+            spellCheck
+            aria-invalid={Boolean(fieldErrors.bodyHtml)}
+            aria-describedby={fieldErrors.bodyHtml ? "bodyHtml-help bodyHtml-error" : "bodyHtml-help"}
+            className="mt-1 w-full rounded-md border border-navy-200 bg-white px-3 py-2 font-mono text-small leading-relaxed focus:border-navy-500"
           />
-          <p className="mt-1 text-xs text-navy-500">
-            অনুমোদিত ট্যাগ: p, h2, h3, strong, em, ul, ol, li, blockquote, a, table। স্ক্রিপ্ট ও
-            ইনলাইন স্টাইল সেভের সময় নয়, প্রকাশের সময় স্বয়ংক্রিয়ভাবে বাদ দেওয়া হয়।
+          <p id="bodyHtml-help" className="mt-1 text-caption leading-snug text-navy-500">
+            Allowed tags: p, h2, h3, strong, em, ul, ol, li, blockquote, a, table. Scripts and
+            inline styles are stripped at render time, not on save - so saving never silently
+            alters what you wrote.
           </p>
-          <FieldError message={fieldErrors.bodyHtml} />
+          <FieldError id="bodyHtml-error" message={fieldErrors.bodyHtml} />
         </div>
 
-        <details className="rounded-md border border-navy-200 p-3">
-          <summary className="cursor-pointer text-sm font-semibold text-navy-900">
-            প্রধান ছবি (ঐচ্ছিক)
+        <details className="rounded-md border border-navy-200 bg-navy-50/50 p-3">
+          <summary className="cursor-pointer text-small font-bold text-navy-900">
+            Hero image <span className="font-normal text-navy-500">(optional)</span>
           </summary>
-          <div className="mt-3 space-y-3">
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="heroImageUrl" className="block text-xs font-semibold text-navy-700">
-                ছবির URL
-              </label>
+              <Label htmlFor="heroImageUrl">Image URL</Label>
               <input
                 id="heroImageUrl"
                 name="heroImageUrl"
                 type="url"
                 defaultValue={article?.heroImageUrl ?? ""}
-                className="mt-1 h-10 w-full rounded-md border border-navy-200 px-3 text-sm"
+                placeholder="https://…"
+                aria-invalid={Boolean(fieldErrors.heroImageUrl)}
+                aria-describedby={fieldErrors.heroImageUrl ? "heroImageUrl-error" : undefined}
+                className={INPUT}
               />
-              <FieldError message={fieldErrors.heroImageUrl} />
+              <FieldError id="heroImageUrl-error" message={fieldErrors.heroImageUrl} />
             </div>
             <div>
-              <label htmlFor="heroImageAlt" className="block text-xs font-semibold text-navy-700">
-                Alt টেক্সট (অ্যাক্সেসিবিলিটির জন্য আবশ্যক)
-              </label>
+              <Label htmlFor="heroImageAlt" hint="(required for accessibility)">
+                Alt text
+              </Label>
               <input
                 id="heroImageAlt"
                 name="heroImageAlt"
                 defaultValue={article?.heroImageAlt ?? ""}
-                className="mt-1 h-10 w-full rounded-md border border-navy-200 px-3 text-sm"
+                placeholder="Describe the image for a reader who cannot see it"
+                className={INPUT}
               />
+              <p className="mt-1 text-caption text-navy-500">
+                Without this the image renders as a labelled placeholder.
+              </p>
             </div>
           </div>
         </details>
@@ -222,11 +295,18 @@ export function ArticleForm({ mode, action, article, categories, readOnly = fals
 
       <div className="flex flex-wrap items-center gap-3 border-t border-navy-100 pt-4">
         <button type="submit" disabled={pending || readOnly} className={buttonClass("primary", "md")}>
-          {pending ? "সংরক্ষণ হচ্ছে…" : mode === "create" ? "ড্রাফট সংরক্ষণ করুন" : "পরিবর্তন সংরক্ষণ করুন"}
+          {pending
+            ? "Saving…"
+            : mode === "create"
+              ? "Save draft"
+              : "Save changes"}
         </button>
         <Link href="/admin/articles" className={buttonClass("secondary", "md")}>
-          ফিরে যান
+          Cancel
         </Link>
+        <p className="text-caption text-navy-500">
+          Saving never publishes. Publication is a separate, permissioned action.
+        </p>
       </div>
     </form>
   );

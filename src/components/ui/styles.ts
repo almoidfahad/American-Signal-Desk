@@ -5,9 +5,9 @@ const base =
   "focus-visible:outline-3 disabled:cursor-not-allowed disabled:opacity-60";
 
 const sizes = {
-  sm: "h-9 px-3 text-sm",
-  md: "h-11 px-4 text-sm",
-  lg: "h-12 px-6 text-base",
+  sm: "h-9 px-3 text-body",
+  md: "h-11 px-4 text-body",
+  lg: "h-12 px-6 text-title",
 } as const;
 
 const variants = {
@@ -48,7 +48,7 @@ const statusTones = {
 export type StatusTone = keyof typeof statusTones;
 
 export function statusClass(tone: StatusTone = "neutral"): string {
-  return `inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${statusTones[tone]}`;
+  return `inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-caption font-semibold ring-1 ${statusTones[tone]}`;
 }
 
 /** Maps an article status to a tone + human label, so statuses read the same everywhere. */

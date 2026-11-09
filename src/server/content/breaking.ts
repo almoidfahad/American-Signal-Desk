@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { anonClient, readAnonEnv } from "@/server/db/client";
 import type { TickerItem } from "@/components/site/breaking-ticker";
 
 /**
@@ -8,12 +8,12 @@ import type { TickerItem } from "@/components/site/breaking-ticker";
  * showing invented headlines. Only `is_active` rows inside their display window are read.
  */
 export async function getBreakingNews(): Promise<TickerItem[]> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return [];
+  const env = readAnonEnv();
+  if (!env) return [];
 
   try {
-    const db = createClient(url, key, { auth: { persistSession: false } });
+    const db = anonClient(env);
+    if (!db) return [];
     const nowIso = new Date().toISOString();
     const { data, error } = await db
       .from("breaking_news")

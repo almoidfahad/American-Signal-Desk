@@ -10,12 +10,12 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="font-serif text-3xl font-extrabold text-navy-900">About American Signal Desk</h1>
-      <p className="mt-3 text-lg text-navy-700">
+      <h1 className="font-serif text-headline font-extrabold text-navy-900">About American Signal Desk</h1>
+      <p className="mt-3 text-dek text-navy-700">
         Trusted news. A stronger America.
       </p>
 
-      <div className="prose-asd mt-8 text-[16px]">
+      <div className="prose-asd mt-8 text-body">
         <h2>What we do</h2>
         <p>
           American Signal Desk reports on national affairs, politics, the economy, technology and

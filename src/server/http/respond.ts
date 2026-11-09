@@ -70,33 +70,22 @@ export function apiFromError(error: unknown, requestId: string): Response {
   return apiError(500, "INTERNAL", "Something went wrong. Quote the request id if you contact support.", requestId);
 }
 
-/** Naive fixed-window limiter for single-instance deployments. Redis-backed in Phase 5. */
-const buckets = new Map<string, { count: number; resetAt: number }>();
+/**
+ * Rate limiting lives in ./rate-limit.ts.
+ *
+ * It used to live here as a module-level Map, which is not a limiter on a serverless
+ * platform: the map is per process, so the count resets on every cold start and is
+ * multiplied by the number of instances. Re-exported here only so the import site stays
+ * the same for existing callers.
+ */
+export { clientIdentity, rateLimit, rateLimitHeaders } from "./rate-limit";
 
-export function rateLimit(
-  key: string,
-  limit: number,
-  windowMs: number,
-): { ok: boolean; remaining: number; resetAt: number } {
-  const now = Date.now();
-  const bucket = buckets.get(key);
-
-  if (!bucket || bucket.resetAt <= now) {
-    const resetAt = now + windowMs;
-    buckets.set(key, { count: 1, resetAt });
-    return { ok: true, remaining: limit - 1, resetAt };
-  }
-
-  bucket.count += 1;
-  return { ok: bucket.count <= limit, remaining: Math.max(0, limit - bucket.count), resetAt: bucket.resetAt };
-}
-
+/**
+ * @deprecated Use `clientIdentity` plus `rateLimit({ scope, identity, ... })`.
+ * Kept because it makes the scope/identity split explicit at the call site.
+ */
 export function clientKey(request: Request, scope: string): string {
-  // Trust the edge-provided client IP only when a proxy sets it; otherwise fall back to a
-  // constant so the limiter still bounds total throughput rather than being bypassable.
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
-  return `${scope}:${ip}`;
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const identity = forwarded ?? request.headers.get("x-real-ip")?.trim() ?? "unknown";
+  return `${scope}:${identity}`;
 }

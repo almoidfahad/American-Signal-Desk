@@ -1,3 +1,4 @@
+import { serviceClient } from "@/server/db/client";
 /**
  * Category list for the admin editor.
  *
@@ -7,7 +8,6 @@
  * Bug this fixes: the editor form previously sent the slug as `categoryId`, which the
  * UUID validator correctly rejected — so choosing a category would have failed on save.
  */
-import { createClient } from "@supabase/supabase-js";
 
 export interface AdminCategory {
   id: string;
@@ -16,11 +16,8 @@ export interface AdminCategory {
 }
 
 export async function listCategoriesForAdmin(): Promise<AdminCategory[]> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return [];
-
-  const db = createClient(url, key, { auth: { persistSession: false } });
+  const db = serviceClient();
+  if (!db) return [];
   const { data, error } = await db
     .from("categories")
     .select("id,name,slug")

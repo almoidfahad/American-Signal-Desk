@@ -20,8 +20,9 @@ export default defineConfig([
     },
   },
   {
-    // The worker is a long-lived Node process; console output goes to its log stream.
-    files: ["workers/**/*.ts", "scripts/**/*.ts"],
+    // Long-lived Node processes and CLIs: console output is the user interface there,
+    // not a debugging leftover. The app itself keeps the strict rule.
+    files: ["workers/**/*.ts", "scripts/**/*.{ts,mjs}"],
     rules: { "no-console": "off" },
   },
 ]);

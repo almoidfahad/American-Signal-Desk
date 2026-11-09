@@ -202,13 +202,13 @@ export function denialReason(
   if (rule.permission === "article.edit.own") {
     const ownsIt = Boolean(actor.userId) && ownerId === actor.userId;
     if (!ownsIt && !granted.has("article.edit.any")) {
-      return "শুধু নিজের ড্রাফটেই এই কাজটি করা যায়।";
+      return "This action is only available on your own draft.";
     }
     return null;
   }
 
   if (!granted.has(rule.permission)) {
-    return `অনুমতি নেই (${rule.permission})।`;
+    return `Missing permission (${rule.permission}).`;
   }
 
   /**
@@ -219,7 +219,7 @@ export function denialReason(
   if (SUBMIT_LEVEL_PERMISSIONS.has(rule.permission)) {
     const ownsIt = Boolean(actor.userId) && ownerId === actor.userId;
     if (!ownsIt && !granted.has("article.edit.any")) {
-      return "এই লেখাটি আপনার নয়, তাই এই ধাপটি আপনার জন্য নয়।";
+      return "This article belongs to another author, so this step is not yours to take.";
     }
   }
 
@@ -237,7 +237,7 @@ export function findTransition(from: string, to: string): TransitionRule | undef
 export function canTransition(from: string, to: string): TransitionResult {
   const rule = findTransition(from, to);
   if (!rule) {
-    return { ok: false, reason: `Illegal transition: ${from} → ${to}` };
+    return { ok: false, reason: `Illegal transition: ${from} to ${to}` };
   }
   return { ok: true, rule };
 }

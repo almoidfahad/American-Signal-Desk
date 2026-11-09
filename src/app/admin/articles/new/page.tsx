@@ -1,72 +1,79 @@
+import { SERVICE_ENV_VARS, hasServiceEnv } from "@/server/db/client";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { PageHeader, Panel } from "@/components/admin/ui";
 import { ArticleForm } from "@/components/admin/article-form";
 import { NotConfigured } from "@/components/ui/states";
 import { createArticleAction } from "../actions";
 import { listCategoriesForAdmin } from "@/server/admin/categories";
-import { getAdminSession } from "@/server/auth/session";
 import { can } from "@/server/authz/permissions";
+import { requireAdminPage } from "@/server/admin/guard";
 
-export const metadata: Metadata = { title: "নতুন লেখা" };
+export const metadata: Metadata = { title: "Add News" };
 export const dynamic = "force-dynamic";
 
 export default async function NewArticlePage() {
-  const session = await getAdminSession();
-  if (!session) redirect("/admin/login");
+  const access = await requireAdminPage();
+  if (!access.ok) return access.node;
+  const session = access.session;
 
   const actor = { userId: session.userId, roles: session.roles };
 
   if (!can(actor, "article.create")) {
     return (
       <div className="mx-auto max-w-lg py-16">
-        <h1 className="text-xl font-bold text-navy-900">অনুমতি নেই</h1>
-        <p className="mt-2 text-sm text-navy-600">
-          আপনার ভূমিকায় নতুন লেখা তৈরির অনুমতি নেই (<code className="font-mono">article.create</code>)।
-          একজন সুপার অ্যাডমিনকে আপনার ভূমিকা ঠিক করতে বলুন।
+        <h1 className="text-dek font-bold text-navy-900">Not permitted</h1>
+        <p className="mt-2 text-small text-navy-600">
+          Your role does not include permission to create articles (
+          <code className="font-mono">article.create</code>). Ask a Super Admin to correct your
+          role assignment.
         </p>
-        <Link href="/admin/articles" className="mt-4 inline-block text-sm font-semibold underline">
-          লেখার তালিকায় ফিরে যান
+        <Link
+          href="/admin/articles"
+          className="mt-4 inline-block text-small font-semibold text-navy-800 underline"
+        >
+          Back to news management
         </Link>
       </div>
     );
   }
 
-  const configured = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
-  );
+  const configured = hasServiceEnv();
 
   const categories = await listCategoriesForAdmin();
 
   return (
-    <div className="max-w-3xl">
-      <nav aria-label="Breadcrumb" className="text-xs text-navy-500">
-        <Link href="/admin/articles" className="hover:underline">
-          সংবাদ ব্যবস্থাপনা
-        </Link>{" "}
-        / নতুন লেখা
+    <div className="max-w-4xl">
+      <nav aria-label="Breadcrumb" className="mb-2 text-caption text-navy-500">
+        <Link href="/admin/articles" className="hover:text-navy-900 hover:underline">
+          News Management
+        </Link>
+        <span aria-hidden="true" className="mx-1.5">
+          /
+        </span>
+        <span aria-current="page">Add News</span>
       </nav>
-      <h1 className="mt-1 text-2xl font-extrabold text-navy-900">নতুন লেখা</h1>
-      <p className="mt-1 text-sm text-navy-600">
-        সংরক্ষণ করলে লেখাটি <strong>ড্রাফট</strong> হিসেবে থাকবে। প্রকাশের জন্য রিভিউ প্রক্রিয়া
-        পার করতে হবে।
-      </p>
 
-      <div className="mt-6">
-        {configured ? (
+      <PageHeader
+        title="Add News"
+        description="Saving stores the article as a draft. Publishing requires the review chain."
+      />
+
+      {configured ? (
+        <Panel bodyClassName="p-5">
           <ArticleForm
             mode="create"
             action={createArticleAction}
-            categories={categories.map((c) => ({ id: c.id, name: c.name }))}
+            categories={categories.map((category) => ({ id: category.id, name: category.name }))}
           />
-        ) : (
-          <NotConfigured
-            feature="লেখা সংরক্ষণ"
-            requiredEnv={["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]}
-            detail="ডেটাবেস কনফিগার করা নেই, তাই কোনো লেখা সংরক্ষণ করা সম্ভব নয়। ফর্মটি দেখানো হচ্ছে বিন্যাস পরীক্ষার জন্য, কিন্তু জমা দিলে স্পষ্টভাবে ব্যর্থ হবে — ভুয়া 'সংরক্ষিত হয়েছে' বার্তা দেখানো হবে না।"
-          />
-        )}
-      </div>
+        </Panel>
+      ) : (
+        <NotConfigured
+          feature="Saving articles"
+          requiredEnv={SERVICE_ENV_VARS}
+          detail="No database is configured, so nothing can be saved. The form is shown so the layout can be reviewed, but submitting fails explicitly - there is no fake 'saved' message."
+        />
+      )}
     </div>
   );
 }

@@ -3,8 +3,16 @@ import { notFound } from "next/navigation";
 import { POLICIES } from "../policies";
 
 /**
- * Catch-all for static institutional pages. Only slugs present in POLICIES resolve;
- * everything else 404s, so the catch-all cannot be used to probe for hidden routes.
+ * Static institutional pages: editorial standards, terms, privacy, cookies, disclaimer.
+ *
+ * `dynamicParams = false` means only slugs present in POLICIES resolve and everything else
+ * 404s, so this route cannot be used to probe for hidden pages.
+ *
+ * The corrections page deliberately does NOT live here. It reads a live ledger, and mixing
+ * a dynamic page into a statically-prerendered catch-all with `dynamicParams = false`
+ * produced a 404 in `next start` even though the build reported success — every path was
+ * prerendered, so the fallback never existed. Corrections now has its own route at
+ * `(public)/corrections`, where the dynamic behaviour is explicit and testable.
  */
 export const dynamicParams = false;
 
@@ -13,7 +21,7 @@ interface PageProps {
 }
 
 export function generateStaticParams() {
-  return POLICIES.map((p) => ({ policy: [p.slug] }));
+  return POLICIES.filter((p) => p.slug !== "corrections").map((p) => ({ policy: [p.slug] }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -34,14 +42,14 @@ export default async function PolicyPage({ params }: PageProps) {
 
   return (
     <article className="mx-auto max-w-3xl">
-      <h1 className="font-serif text-3xl font-extrabold text-navy-900">{doc.title}</h1>
-      <p className="mt-2 text-sm text-navy-600">{doc.summary}</p>
-      <p className="mt-1 text-xs text-navy-500">
+      <h1 className="font-serif text-headline font-extrabold text-navy-900">{doc.title}</h1>
+      <p className="mt-2 text-body text-navy-600">{doc.summary}</p>
+      <p className="mt-1 text-caption text-navy-500">
         Last updated{" "}
         <time dateTime="2026-11-08">{doc.updated}</time>
       </p>
 
-      <div className="prose-asd mt-8 text-[16px] text-navy-900">
+      <div className="prose-asd mt-8 text-body text-navy-900">
         {doc.sections.map((section) => (
           <section key={section.heading}>
             <h2>{section.heading}</h2>

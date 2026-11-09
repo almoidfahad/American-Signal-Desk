@@ -83,8 +83,11 @@ export const POLICIES: PolicyDoc[] = [
         ],
       },
       {
-        heading: "No corrections listed yet",
-        body: ["This page lists corrections once the newsroom begins publishing."],
+        heading: "Every correction is logged",
+        body: [
+          "Each correction below names the article, says what was wrong, says what the article now states, and carries the date it was recorded.",
+          "These entries cannot be edited or deleted, including by administrators. The ledger is append-only by database design, so a correction cannot be quietly withdrawn.",
+        ],
       },
     ],
   },

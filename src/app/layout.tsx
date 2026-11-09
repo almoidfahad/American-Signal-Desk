@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { inter } from "./fonts";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME ?? "American Signal Desk";
@@ -32,13 +33,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-US">
-      <body className="min-h-dvh antialiased">
-        <a href="#main" className="skip-link">
-          Skip to main content
-        </a>
-        {children}
-      </body>
+    <html lang="en-US" className={inter.variable}>
+      <body className="min-h-dvh antialiased">{children}</body>
     </html>
   );
 }

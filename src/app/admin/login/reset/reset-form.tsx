@@ -23,7 +23,7 @@ export function ResetForm() {
 
     const parsed = emailSchema.safeParse(email);
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "সঠিক ইমেইল দিন।");
+      setError(parsed.error.issues[0]?.message ?? "Enter a valid email address.");
       return;
     }
 
@@ -41,7 +41,7 @@ export function ResetForm() {
       // Same message whether or not the account exists.
       setSent(true);
     } catch {
-      setError("সাময়িকভাবে সমস্যা হচ্ছে। আবার চেষ্টা করুন।");
+      setError("Something went wrong. Try again.");
     } finally {
       setPending(false);
     }
@@ -50,10 +50,10 @@ export function ResetForm() {
   if (sent) {
     return (
       <div role="status">
-        <p className="text-sm font-semibold text-navy-900">অনুরোধ গ্রহণ করা হয়েছে</p>
-        <p className="mt-2 text-sm text-navy-600">
-          যদি এই ইমেইলে কোনো অ্যাকাউন্ট থাকে, একটি রিসেট লিংক পাঠানো হয়েছে। লিংকটি কিছুক্ষণের
-          মধ্যেই আসবে; না এলে স্প্যাম ফোল্ডার দেখুন।
+        <p className="text-body font-semibold text-navy-900">Request received</p>
+        <p className="mt-2 text-body text-navy-600">
+          If an account exists for that address, a reset link has been sent. It should arrive
+          shortly; check your spam folder if it does not.
         </p>
       </div>
     );
@@ -62,8 +62,8 @@ export function ResetForm() {
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
       <div>
-        <label htmlFor="reset-email" className="block text-sm font-semibold text-navy-900">
-          ইমেইল ঠিকানা
+        <label htmlFor="reset-email" className="block text-body font-semibold text-navy-900">
+          Email address
         </label>
         <input
           id="reset-email"
@@ -74,7 +74,7 @@ export function ResetForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           aria-invalid={Boolean(error)}
-          className="mt-1 h-11 w-full rounded-md border border-navy-200 px-3 text-sm"
+          className="mt-1 h-11 w-full rounded-md border border-navy-200 px-3 text-body"
           disabled={pending}
         />
       </div>
@@ -83,7 +83,7 @@ export function ResetForm() {
         <p
           role="alert"
           aria-live="polite"
-          className="rounded-md bg-signal-50 px-3 py-2 text-xs text-signal-800 ring-1 ring-signal-200"
+          className="rounded-md bg-signal-50 px-3 py-2 text-caption text-signal-800 ring-1 ring-signal-200"
         >
           {error}
         </p>
@@ -92,9 +92,9 @@ export function ResetForm() {
       <button
         type="submit"
         disabled={pending}
-        className="h-11 w-full rounded-md bg-signal-600 text-sm font-bold text-white hover:bg-signal-700 disabled:opacity-60"
+        className="h-11 w-full rounded-md bg-signal-600 text-body font-bold text-white hover:bg-signal-700 disabled:opacity-60"
       >
-        {pending ? "পাঠানো হচ্ছে…" : "রিসেট লিংক পাঠান"}
+        {pending ? "Sending..." : "Send reset link"}
       </button>
     </form>
   );

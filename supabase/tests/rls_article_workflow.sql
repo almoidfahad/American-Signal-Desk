@@ -18,6 +18,9 @@
 begin;
 
 create schema if not exists test_util;
+-- The suites switch into the `authenticated` role to exercise RLS, so that role must be
+-- able to call the helper functions. Safe: test_util lives only in this throwaway database.
+grant usage on schema test_util to authenticated, anon;
 
 do $$ begin
   insert into auth.users (id, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at, aud, role)
@@ -46,6 +49,19 @@ begin
 end;
 $$;
 
+-- Returns to the table-owner context with no JWT claims.
+-- Needed for fixtures and append-only tests: writing a row *as* a normal user would
+-- conflate two separate controls (RLS policy vs. the control being tested).
+create or replace function test_util.act_as_owner() returns void
+language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', '', true);
+  perform set_config('request.jwt.claim.sub', '', true);
+  perform set_config('request.jwt.claim.role', '', true);
+  reset role;
+end;
+$$;
+
 create or replace function test_util.assert_true(p_condition boolean, p_message text) returns void
 language plpgsql as $$
 begin
@@ -68,8 +84,13 @@ begin
 end;
 $$;
 
+grant execute on all functions in schema test_util to authenticated, anon;
+
 -- Fixture: one draft owned by author A -----------------------------------------
-select test_util.act_as('33333333-3333-3333-3333-333333333333');
+-- Written as the owner on purpose. Inserting *as* the author would test the INSERT
+-- policy, not the fixtures; the insert path is covered by migration 0002's policy and
+-- by the service layer, and a failure here should not mask a status-guard regression.
+select test_util.act_as_owner();
 insert into public.articles (slug, title, dek, body_html, status, created_by, publish_at)
 values ('test-draft-a', 'Test draft A', 'dek', '<p>body</p>', 'draft',
         '33333333-3333-3333-3333-333333333333', null);
@@ -77,6 +98,9 @@ values ('test-draft-a', 'Test draft A', 'dek', '<p>body</p>', 'draft',
 -- ---------------------------------------------------------------------------
 -- 1. Author CANNOT publish their own draft (the escalation path)
 -- ---------------------------------------------------------------------------
+-- Every section states its actor explicitly. Relying on the actor left behind by the
+-- previous block is what made this suite silently test the wrong thing.
+select test_util.act_as('33333333-3333-3333-3333-333333333333');
 select test_util.expect_error(
   $$update public.articles set status = 'published', publish_at = now()
     where slug = 'test-draft-a'$$,
@@ -99,6 +123,7 @@ select test_util.expect_error(
 -- ---------------------------------------------------------------------------
 -- 2. Author CAN submit for review and edit their own copy
 -- ---------------------------------------------------------------------------
+select test_util.act_as('33333333-3333-3333-3333-333333333333');
 update public.articles set status = 'pending_review' where slug = 'test-draft-a';
 select test_util.assert_true(
   (select status from public.articles where slug = 'test-draft-a') = 'pending_review',

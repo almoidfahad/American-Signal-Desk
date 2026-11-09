@@ -11,7 +11,23 @@
 --    tables that only the service role should touch.
 -- =============================================================================
 
-create extension if not exists "pgcrypto";
+-- Extension schema used by the SECURITY DEFINER helpers' pinned search_path.
+-- Defaults to `extensions` (Supabase's convention) so those functions can resolve
+-- extension-provided objects; on a plain PostgreSQL install pg_catalog is enough.
+do $$ begin
+  if not exists (select 1 from pg_namespace where nspname = 'extensions') then
+    create schema extensions;
+  end if;
+end $$;
+
+-- gen_random_uuid(): provided by pgcrypto on older servers, built into core since
+-- PostgreSQL 13. Try the extension (as Supabase provides it), fall back to core, and
+-- never fail the migration just because the extension package is absent.
+do $$ begin
+  create extension if not exists "pgcrypto" with schema extensions;
+exception when others then
+  raise notice 'pgcrypto unavailable; relying on built-in gen_random_uuid()';
+end $$;
 
 -- -----------------------------------------------------------------------------
 -- Enumerations
@@ -100,7 +116,7 @@ create or replace function public.audit_logs_block_mutation()
 returns trigger
 language plpgsql
 security definer
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, extensions
 as $$
 begin
   raise exception 'audit_logs is append-only; % is not permitted', tg_op
@@ -127,7 +143,7 @@ returns public.app_role[]
 language sql
 stable
 security definer
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, extensions
 as $$
   select coalesce(array_agg(ur.role), array[]::public.app_role[])
   from public.user_roles ur
@@ -142,7 +158,7 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, extensions
 as $$
   select public.current_user_roles() @> array['super_admin']::public.app_role[];
 $$;
@@ -156,7 +172,7 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, extensions
 as $$
   select exists (
     select 1
@@ -296,7 +312,7 @@ create policy audit_logs_insert on public.audit_logs
 create or replace function public.touch_updated_at()
 returns trigger
 language plpgsql
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, extensions
 as $$
 begin
   new.updated_at = now();
@@ -315,7 +331,7 @@ create or replace function public.handle_new_auth_user()
 returns trigger
 language plpgsql
 security definer
-set search_path = pg_catalog, public
+set search_path = pg_catalog, public, extensions
 as $$
 begin
   insert into public.profiles (id, email, display_name)

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Wordmark } from "@/components/brand";
 import { NotConfigured } from "@/components/ui/states";
 import { getAdminSession } from "@/server/auth/session";
 import { MfaForm } from "./mfa-form";
 
 export const metadata: Metadata = {
-  title: "দুই-ধাপ যাচাই",
+  title: "Two-factor verification",
   robots: { index: false, follow: false },
 };
 export const dynamic = "force-dynamic";
@@ -20,35 +21,40 @@ export default async function MfaPage() {
     return (
       <div className="mx-auto flex min-h-dvh max-w-md items-center px-6">
         <NotConfigured
-          feature="দুই-ধাপ যাচাই"
+          feature="Two-factor verification"
           requiredEnv={["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"]}
-          detail="অথেন্টিকেশন কনফিগার করা নেই, তাই MFA চালু করা সম্ভব নয়।"
+          detail="Authentication is not configured in this environment, so a second factor cannot be checked. Without a working identity provider this page cannot be exercised at all."
         />
       </div>
     );
   }
 
-  // Already satisfied a second factor → straight to the dashboard.
+  // Already satisfied a second factor -> straight to the dashboard.
   const session = await getAdminSession();
   if (session?.mfaVerified) redirect("/admin");
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-12">
-      <h1 className="text-2xl font-extrabold text-navy-900">দুই-ধাপ যাচাই</h1>
-      <p className="mt-1 text-sm text-navy-600">
-        অ্যাডমিন প্যানেলে ঢোকার জন্য আপনার অথেনটিকেটর অ্যাপের ৬-সংখ্যার কোডটি দিন।
-      </p>
-
-      <div className="mt-6 rounded-lg bg-white p-6 ring-1 ring-navy-100">
-        <MfaForm />
+    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-12">
+      <div className="mb-6 flex justify-center">
+        <Wordmark size="md" />
       </div>
 
-      <div className="mt-4 flex justify-between text-xs">
+      <div className="rounded-xl bg-white p-7 shadow-xl shadow-navy-900/5 ring-1 ring-navy-100">
+        <h1 className="text-heading font-extrabold text-navy-900">Two-factor verification</h1>
+        <p className="mt-1 text-small text-navy-600">
+          Enter the 6-digit code from your authenticator app to continue.
+        </p>
+        <div className="mt-5">
+          <MfaForm />
+        </div>
+      </div>
+
+      <div className="mt-4 flex justify-between text-caption">
         <Link href="/admin/login" className="font-semibold text-navy-700 hover:underline">
-          ← আবার সাইন ইন
+          Back to sign in
         </Link>
         <Link href="/contact" className="text-navy-500 hover:underline">
-          সহায়তা দরকার?
+          Need help?
         </Link>
       </div>
     </div>
