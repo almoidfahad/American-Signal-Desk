@@ -16,7 +16,7 @@ export function ListUnavailable<T>({
   detail,
 }: {
   feature: string;
-  requiredEnv: string[];
+  requiredEnv: readonly string[];
   result: Extract<Result<T>, { ok: false }>;
   detail: string;
 }) {

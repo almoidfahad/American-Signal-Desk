@@ -1,5 +1,6 @@
 import { newRequestId } from "@/server/http/respond";
 import { computeHealth } from "@/server/health/compute-health";
+import { hasServiceEnv } from "@/server/db/client";
 
 /**
  * Readiness probe.
@@ -17,9 +18,9 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const requestId = newRequestId();
   const { status, httpStatus, checks } = computeHealth({
-    hasDatabaseConfig: Boolean(
-      process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
-    ),
+    // Asks the factory rather than re-deriving the rule: one definition of
+    // "the database is configured", so the probe cannot disagree with the readers.
+    hasDatabaseConfig: hasServiceEnv(),
     hasRedisConfig: Boolean(process.env.REDIS_URL),
   });
 

@@ -12,23 +12,14 @@
  * publish_at <= now(). Private columns (drafts, revision history, unpublished bodies) are
  * not selected, so they cannot leak even if a policy is later misconfigured.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { anonClient, type AnonClient } from "@/server/db/client";
 import { demoArticle, demoHomePage, DEMO_CATEGORIES } from "./demo";
 import type { Article, ArticleCard, ArticlePageData, Category, HomePageData } from "./types";
 
 export type ContentMode = "live" | "demo" | "unavailable";
 
-let client: SupabaseClient | null = null;
-
-function supabase(): SupabaseClient | null {
-  if (client) return client;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  client = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  return client;
+function supabase(): AnonClient | null {
+  return anonClient();
 }
 
 export function contentMode(): ContentMode {

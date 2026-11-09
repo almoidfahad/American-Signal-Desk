@@ -13,7 +13,8 @@
  *     and it is distinguishable from "we could not read the corrections" — conflating the
  *     two would let an outage look like a clean record.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+import { anonClient as sharedAnonClient, serviceClient } from "@/server/db/client";
 
 export type CorrectionFeedState = "live" | "empty" | "unavailable";
 
@@ -33,13 +34,6 @@ export interface CorrectionFeed {
   corrections: PublicCorrection[];
   /** Present when state is `unavailable`, so the page can say why without guessing. */
   reason?: string;
-}
-
-function anonClient(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
 /**
@@ -65,7 +59,7 @@ export function clampLimit(requested: number, max = MAX_CORRECTIONS): number {
 }
 
 export async function getPublicCorrections(limit = 50): Promise<CorrectionFeed> {
-  const db = anonClient();
+  const db = sharedAnonClient();
   if (!db) {
     return {
       state: "unavailable",
@@ -139,19 +133,14 @@ export interface RevisionHistory {
  * client reads it.
  */
 export async function getRevisionHistory(articleId: string): Promise<RevisionHistory> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) {
+  const db = serviceClient();
+  if (!db) {
     return {
       state: "unavailable",
       revisions: [],
       reason: "The database is not configured, so revision history is unavailable.",
     };
   }
-
-  const db = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
 
   const { data, error } = await db
     .from("article_revisions")

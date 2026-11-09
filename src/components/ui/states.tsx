@@ -60,7 +60,7 @@ export function NotConfigured({
   detail,
 }: {
   feature: string;
-  requiredEnv: string[];
+  requiredEnv: readonly string[];
   detail: string;
 }) {
   return (

@@ -1,3 +1,4 @@
+import { SERVICE_ENV_VARS } from "@/server/db/client";
 import { formatNewsroom } from "@/lib/dates";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -125,7 +126,7 @@ export default async function AdminDashboardPage() {
         <div className="mb-5">
           <NotConfigured
             feature="Dashboard metrics"
-            requiredEnv={["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]}
+            requiredEnv={SERVICE_ENV_VARS}
             detail={stats.reason ?? "No verified data source is available."}
           />
         </div>

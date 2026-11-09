@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { serviceClient } from "@/server/db/client";
 import { newsletterSchema } from "@/lib/validation/auth";
 import { apiError, apiOk, apiFromError, clientKey, newRequestId, rateLimit } from "@/server/http/respond";
 
@@ -38,9 +38,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !serviceKey) {
+    // The service-role client: writing a subscription is not something an anonymous
+    // caller may do directly, and the table has no public INSERT policy.
+    const db = serviceClient();
+    if (!db) {
       return apiError(
         503,
         "NOT_CONFIGURED",
@@ -48,8 +49,6 @@ export async function POST(request: Request) {
         requestId,
       );
     }
-
-    const db = createClient(url, serviceKey, { auth: { persistSession: false } });
 
     // Idempotent: a repeat submission of the same address does not create a duplicate row.
     const { error } = await db.from("newsletter_subscriptions").upsert(

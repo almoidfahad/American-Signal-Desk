@@ -1,3 +1,4 @@
+import { SERVICE_ENV_VARS } from "@/server/db/client";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge, PageHeader } from "@/components/admin/ui";
@@ -59,7 +60,7 @@ export default async function ReviewQueuePage() {
       {!result.ok && result.code === "NOT_CONFIGURED" ? (
         <NotConfigured
           feature="Review queue"
-          requiredEnv={["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]}
+          requiredEnv={SERVICE_ENV_VARS}
           detail="No database is configured, so the queue cannot be read. An empty queue here is a configuration gap, not a finished review cycle."
         />
       ) : !result.ok ? (

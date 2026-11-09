@@ -1,3 +1,4 @@
+import { hasServiceEnv, serviceClient } from "@/server/db/client";
 /**
  * Admin dashboard metrics.
  *
@@ -6,7 +7,6 @@
  * reason. A dashboard that shows plausible-looking fake traffic is worse than one that
  * admits it has no data.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { contentMode } from "@/server/content/repository";
 
 export type MetricStatus = "live" | "unavailable";
@@ -45,19 +45,10 @@ function metric(
   return { key, label, value, status, ...extra };
 }
 
-function serviceClient(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return null;
-  return createClient(url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
 /** Honest, unfaked service checks derived from configuration presence only. */
 function systemChecks(): DashboardStats["systemChecks"] {
   const checks: DashboardStats["systemChecks"] = [];
-  const hasDb = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const hasDb = hasServiceEnv();
   checks.push({
     label: "Database (PostgreSQL)",
     state: hasDb ? "ok" : "unknown",

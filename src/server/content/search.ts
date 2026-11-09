@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { anonClient, readAnonEnv } from "@/server/db/client";
 import { DEMO_ARTICLES } from "./demo";
 import { contentMode } from "./repository";
 import type { ArticleCard } from "./types";
@@ -23,10 +23,9 @@ export interface SearchOutcome {
 }
 
 export async function searchArticles(query: string): Promise<SearchOutcome> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const env = readAnonEnv();
 
-  if (!url || !key) {
+  if (!env) {
     if (process.env.NODE_ENV === "production") {
       return { results: [], isDemoData: false, mode: "unavailable" };
     }
@@ -40,7 +39,10 @@ export async function searchArticles(query: string): Promise<SearchOutcome> {
     return { results, isDemoData: contentMode() === "demo", mode: "demo" };
   }
 
-  const db = createClient(url, key, { auth: { persistSession: false } });
+  const db = anonClient(env);
+  if (!db) {
+    return { results: [], isDemoData: false, mode: "unavailable" };
+  }
   const { data, error } = await db.rpc("search_articles", { q: query, max_rows: 30 });
 
   if (error) {

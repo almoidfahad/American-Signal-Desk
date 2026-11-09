@@ -14,7 +14,7 @@
  * If the database is not configured, mutations fail explicitly. There is no in-memory
  * pretend-CMS: a "saved" article that was never persisted would be the worst possible lie.
  */
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { serviceClient, type ServiceClient } from "@/server/db/client";
 import {
   AuthorizationError,
   can,
@@ -56,13 +56,6 @@ export type ServiceErrorCode =
   | "ILLEGAL_TRANSITION"
   | "CONFLICT";
 
-function serviceClient(): SupabaseClient | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-}
-
 const NOT_CONFIGURED: ServiceResult<never> = {
   ok: false,
   code: "NOT_CONFIGURED",
@@ -76,7 +69,7 @@ const NOT_CONFIGURED: ServiceResult<never> = {
  * independently, so a logging hiccup cannot erase the trail entirely.
  */
 async function writeAudit(
-  db: SupabaseClient,
+  db: ServiceClient,
   actor: Actor,
   action: string,
   articleId: string,

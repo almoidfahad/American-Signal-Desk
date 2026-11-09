@@ -1,3 +1,4 @@
+import { SERVICE_ENV_VARS, hasServiceEnv } from "@/server/db/client";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader, Panel } from "@/components/admin/ui";
@@ -37,9 +38,7 @@ export default async function NewArticlePage() {
     );
   }
 
-  const configured = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY,
-  );
+  const configured = hasServiceEnv();
 
   const categories = await listCategoriesForAdmin();
 
@@ -71,7 +70,7 @@ export default async function NewArticlePage() {
       ) : (
         <NotConfigured
           feature="Saving articles"
-          requiredEnv={["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]}
+          requiredEnv={SERVICE_ENV_VARS}
           detail="No database is configured, so nothing can be saved. The form is shown so the layout can be reviewed, but submitting fails explicitly - there is no fake 'saved' message."
         />
       )}
