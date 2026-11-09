@@ -18,12 +18,13 @@ review of what is and is not yet sound.
 
 | Area | State | Evidence |
 | --- | --- | --- |
-| Foundation | **Done** | strict TypeScript, ESLint zero-warning, 229 unit tests, production build |
+| Foundation | **Done** | strict TypeScript, ESLint zero-warning, 248 unit tests, production build |
 | Identity & RBAC | **Verified against real PostgreSQL** | `docs/PHASE-2-VERIFICATION.md`, `rls_identity.sql` |
 | Editorial CMS | **Verified against real PostgreSQL** | `docs/PHASE-3-REPORT.md`, migrations `0002`–`0004` |
 | Public website | **Built** | homepage, article, category, search, corrections, policy pages, sitemap/robots |
 | Rate limiting | **Done** | `0005_rate_limits.sql`, `rls_rate_limits.sql` — counted in the database, not per process |
 | Background jobs | **Done** | `0006_job_queue.sql`, `rls_jobs.sql`, `src/server/jobs/` |
+| Newsletter double opt-in | **Done** | `0007_email_outbox.sql`, `rls_email_outbox.sql`, `src/server/email/` |
 | Agents, billing, deploy control, QA sweep | **Not started** | — |
 
 Verified locally, at the time of writing:
@@ -31,9 +32,9 @@ Verified locally, at the time of writing:
 ```
 npm run typecheck   → pass (tsc --noEmit, strict, noUncheckedIndexedAccess)
 npm run lint        → pass (eslint --max-warnings=0)
-npm test            → pass (229 tests, 19 files)
+npm test            → pass (248 tests, 20 files)
 npm run build       → pass (16 pages prerendered, 3 API routes)
-npm run test:db     → pass (6 migrations applied + 5 RLS/authorization suites, PostgreSQL 16.2)
+npm run test:db     → pass (6 migrations applied + 6 RLS/authorization suites, PostgreSQL 16.2)
 ```
 
 ### Not verified, and therefore not claimed
@@ -136,6 +137,22 @@ The queue exists because of one specific promise: an editor can schedule an arti
 until this was built nothing could move a row out of `scheduled`. Every deadline the product
 accepted would have been silently missed.
 
+### Newsletter: double opt-in, in an outbox
+
+The endpoint used to answer `pending_confirmation` while nothing sent that confirmation — a
+reader who asked to subscribe was recorded as `pending` and stayed there. Now one database
+function records the subscription, issues the token and queues exactly one email, in the same
+statement set; a worker drains the outbox.
+
+- **The token is never returned by the API.** It travels in the email only.
+- **Repeat signups do not queue a second email** and do not rotate the token.
+- **Confirming is idempotent.** A mail scanner that opens the link first, or a reader who
+  clicks twice, is told "already confirmed" rather than shown an error.
+- **An unsubscribed address must confirm again.** Re-adding a stranger's address is otherwise
+  a one-request attack.
+- **No provider configured is a supported state.** Nothing is marked, no attempt budget is
+  spent, and the worker says so. A no-op provider would have made every send look successful.
+
 ### Rate limiting
 
 Counters live in Postgres (`0005_rate_limits.sql`), because a module-level `Map` is not a
@@ -184,11 +201,12 @@ src/server/content/    Public read layer, sanitisation, demo fixtures
 src/server/db/         The only Supabase client construction site
 src/server/editorial/  Article state machine + authorization-checked service layer
 src/server/jobs/       Queue runner, handlers, kinds and schedules
+src/server/email/      Outbox drain and the mail-provider boundary
 src/server/http/       Uniform responses and the rate limiter
 scripts/               dev launcher, job worker, TypeScript alias resolver
-supabase/migrations/   Versioned SQL migrations (0001–0006)
-supabase/tests/        RLS/authorization SQL suites (5)
-tests/                 Vitest unit suites (18 files)
+supabase/migrations/   Versioned SQL migrations (0001–0007)
+supabase/tests/        RLS/authorization SQL suites (6)
+tests/                 Vitest unit suites (20 files)
 docs/                  Audit, phase reports, code review
 ```
 
@@ -205,7 +223,8 @@ docs/                  Audit, phase reports, code review
    drives it.
 5. Have counsel review every draft policy page under `src/app/(public)/`.
 6. Replace the placeholder `ads@` / `corrections@` addresses with real, monitored mailboxes.
-7. Wire newsletter confirmation mail before promising readers a confirmation step: the
-   endpoint records `pending_confirmation`, and nothing currently sends that message.
+7. Set `RESEND_API_KEY` and `EMAIL_FROM`, or the confirmation emails stay queued forever and
+   every signup sits at `pending`. The queue reports "not configured" rather than pretending;
+   the admin configuration page names the missing variables.
 
 Policy and legal copy in this repository is a working draft, not legal advice.

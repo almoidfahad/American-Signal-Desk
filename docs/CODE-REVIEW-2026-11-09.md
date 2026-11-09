@@ -385,3 +385,65 @@ the suite.
 - `POST /api/cron/tick` without a secret returns `401` with no detail about which part failed.
 - Sabotage ×2: trusting any JWT fails the *existing* workflow suite; removing
   `publish_at <= now()` fails the job suite.
+
+---
+
+## Newsletter double opt-in: the promise is now kept
+
+**The gap.** The endpoint answered `pending_confirmation`, the schema even had a
+`confirm_token` column — and nothing issued a token, sent an email, or could confirm a
+subscription. A reader who asked to subscribe was recorded as `pending` and stayed there
+forever. Exactly the shape of failure this codebase keeps finding: a data model that appears
+to support a promise, and code that cannot keep it.
+
+**The shape of the fix: an outbox, not a direct send.** The endpoint must not send email
+inline — it takes hundreds of milliseconds, fails in ways the reader cannot act on, and makes
+a signup depend on a third party. So one database function records the subscription, issues
+or reuses the token, and queues exactly one row in `email_outbox`; a worker sends it later.
+The reader gets an honest 202 immediately, and a provider outage becomes a delayed email
+rather than a failed signup. Nothing in the schema knows what Resend is, so the provider stays
+swappable.
+
+**Details that are decisions, not defaults**
+
+| situation | behaviour | why |
+| --- | --- | --- |
+| repeat signup, still pending | no second email, token unchanged | a reader who clicked twice must not be mailed twice |
+| already confirmed | `200 already_confirmed`, no email | saying "check your inbox" would be a lie |
+| unsubscribed, then returns | new token, new email required | otherwise re-adding a stranger is a one-request attack |
+| link opened twice | `already_confirmed` | mail scanners pre-fetch links; a real reader must not see an error |
+| database unreachable | `unavailable` — **not** `invalid` | "your link is broken" sends them to request a mail that will also fail |
+| no mail provider configured | nothing marked, worker says so | a no-op provider would make every send look successful |
+
+**The token never leaves the server.** It is 64 hex characters from two `gen_random_uuid()`
+calls (deliberately not pgcrypto's `gen_random_bytes`, which is absent on the test harness — a
+generator that cannot run where tests run is a generator nobody can test). It is stored, put in
+the email body, and never returned by the API: a caller holding the token could confirm an
+address they do not control.
+
+**A test caught a design mistake.** `src/app/(public)/newsletter/confirm/page.tsx` initially
+called `serviceClient()` directly, and `tests/db-client.test.ts` — written when the credential
+guard was added — failed with the file named. The fix was not to exempt the page but to move
+the decision into `src/server/newsletter/confirm.ts`: a page that talks to the database can
+only be tested through HTTP, and the service key should be reachable from exactly one layer.
+
+**Two bugs found by running it**
+
+1. `RETURNS TABLE (outcome, token)` and `RETURNS TABLE (outcome, email)` shadow table columns
+   of the same name; without `#variable_conflict use_column` the updates are ambiguous and
+   fail at runtime rather than at definition time.
+2. The "one queued email per address" guard also fired for a *returning* subscriber, because
+   by the time the guard ran the status had already been set back to `pending`. A separate
+   `v_returning` flag fixes it — without which unsubscribe-then-return would queue nothing and
+   the address could never be confirmed again.
+
+And one test that was asserting the wrong guarantee: `authenticated` can `SELECT` from
+`newsletter_subscriptions`; RLS with no policies means **zero rows**, not an exception. The
+suite now asserts the row count, which is the property that actually matters.
+
+**Verification.** `supabase/tests/rls_email_outbox.sql` — six behaviour groups plus the
+anon/authenticated denials; 19 unit tests covering the outbox states, the provider boundary
+(4xx permanent, 5xx and 429 retryable), and the endpoint's refusal to echo the token.
+Sabotage ×3 (no-op provider success, retryability inverted, token echoed) all fail. Live: a
+bad token renders "We could not check that link" rather than "invalid" while no database is
+configured, which is the correct answer in that state.

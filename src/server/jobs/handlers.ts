@@ -48,6 +48,38 @@ export const publishScheduled: JobHandler = async (_payload, ctx): Promise<JobOu
   return { ok: true, detail: `${published} published` };
 };
 
+/**
+ * Drains the email outbox.
+ *
+ * Distinguished from the others by what "no mail provider configured" means: it is not a
+ * failure of any message, so nothing is marked and no attempt budget is spent. The tick
+ * reports success with a reason, and the admin configuration page already says which
+ * variables are missing.
+ */
+export const sendEmail: JobHandler = async (_payload, ctx): Promise<JobOutcome> => {
+  const { drainOutbox } = await import("@/server/email/outbox");
+  const result = await drainOutbox();
+
+  if (result.skipped) {
+    // Retrying will not create a provider. Report the state instead of looping.
+    return { ok: true, detail: `skipped: ${result.skipped}` };
+  }
+
+  if (result.attempted > 0) {
+    console.error(
+      `[job:${ctx.runId}] outbox attempted=${result.attempted} sent=${result.sent} ` +
+        `retry=${result.failed} dead=${result.dead}`,
+    );
+  }
+
+  // A message that failed retryably stays queued; the next tick picks it up. That is not a
+  // job failure, so it does not consume this job's attempts.
+  return {
+    ok: true,
+    detail: `attempted=${result.attempted} sent=${result.sent} retry=${result.failed} dead=${result.dead}`,
+  };
+};
+
 /** Deletes expired rate-limit counters. Bounded per call, so one tick cannot lock the table. */
 export const purgeRateLimits: JobHandler = async (_payload, ctx): Promise<JobOutcome> => {
   const { serviceClient } = await import("@/server/db/client");
@@ -88,6 +120,7 @@ export const purgeJobs: JobHandler = async (_payload, ctx): Promise<JobOutcome> 
 /** Registered handlers. A kind with no handler here fails permanently rather than silently. */
 export const HANDLERS: Readonly<Record<string, JobHandler>> = {
   publish_scheduled: publishScheduled,
+  send_email: sendEmail,
   purge_rate_limits: purgeRateLimits,
   purge_jobs: purgeJobs,
 };

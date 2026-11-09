@@ -7,7 +7,7 @@
  * done in a request: publishing an article at the time it was scheduled for.
  */
 
-export const JOB_KINDS = ["publish_scheduled", "purge_rate_limits", "purge_jobs"] as const;
+export const JOB_KINDS = ["publish_scheduled", "send_email", "purge_rate_limits", "purge_jobs"] as const;
 
 export type JobKind = (typeof JOB_KINDS)[number];
 
@@ -59,6 +59,12 @@ export const JOB_SCHEDULE: Readonly<Record<JobKind, { everySeconds: number; desc
   publish_scheduled: {
     everySeconds: 60,
     description: "Publish articles whose scheduled time has passed.",
+  },
+  send_email: {
+    // Draining the outbox is the job that makes a signup turn into a confirmation email.
+    // A reader is waiting, so this runs often.
+    everySeconds: 30,
+    description: "Send queued email from the outbox.",
   },
   purge_rate_limits: {
     everySeconds: 3600,
