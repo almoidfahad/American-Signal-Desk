@@ -263,3 +263,63 @@ had lost its id — it only checked that `FieldError` was *handed* an id, not th
 used one. It now renders the component's markup and asserts `id={id}` is present.
 The `Date.now()` test initially flagged rate limiting and session expiry, which are
 legitimately server-side; it is now scoped to components and page files.
+
+---
+
+## Fixed: item 1 — the rate limiter
+
+**The defect.** `respond.ts` kept counters in a module-level `Map`. On Vercel each
+request may be a fresh process, so the map is usually empty when the request arrives and
+the limiter does nothing. On two long-lived instances the effective limit is multiplied by
+two. Neither failure is visible: the code looks correct, the tests pass, nobody is limited.
+
+**The fix.** Counters live in Postgres (`supabase/migrations/0005_rate_limits.sql`), where
+every instance reads the same number. The increment is one atomic statement —
+`insert … on conflict … do update … returning` — because a read followed by a write lets
+two concurrent requests both observe "under budget" and both proceed. Proven on real
+PostgreSQL 16.2: 40 concurrent increments from 40 separate connections produce exactly 40.
+
+**What it deliberately is not.** This is back-pressure, not a security boundary. It stops
+a retrying client, a stuck form, a cheap script. It does not stop a distributed attacker;
+that needs an edge/WAF control. The migration says so in its header, because a comment
+claiming more than the code delivers is how the next person builds on sand.
+
+**Degradation is stated, not hidden.** The previous version had one behaviour and no way
+to tell how it was performing. Now every decision reports its source:
+
+| situation | behaviour | `X-RateLimit-Source` |
+| --- | --- | --- |
+| database reachable | authoritative, global count | `database` |
+| no database configured | per-instance counter, bounded not absent | `memory` |
+| RPC fails / empty answer | same fallback, and the failure is logged | `memory` |
+
+A limiter that quietly fails open is what this commit exists to remove, so the weaker
+guarantee is named in a response header rather than being invisible. Denials also carry
+`Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining` and `X-RateLimit-Reset`.
+
+**No raw identifiers are stored.** The bucket key is `<scope>:<sha256(identity)[0:32]>`,
+computed in the application. An IP address is personal data in several jurisdictions and
+an email certainly is; the limiter needs equality, never the value.
+
+**The table is plumbing.** RLS is enabled with no policies and privileges are revoked from
+`anon` and `authenticated`, so a client cannot read another client's counters or reset its
+own. Only the `security definer` functions touch it.
+
+**Verification**
+
+- `supabase/tests/rls_rate_limits.sql` — counting, window rollover, bucket isolation,
+  expiry cleanup, and that `anon`/`authenticated` can neither read nor write the table.
+  Runs in the harness with the other suites: *all migrations and RLS suites pass*.
+- `tests/rate-limit.test.ts` (12 tests) — hashing, identity extraction, the memory
+  fallback, the database path, the empty-answer case, headers, and structural assertions
+  that no module reintroduces a `Map` and that the migration uses an atomic upsert.
+- Live: sixth request in a minute returns `429` with `retry-after: 60`,
+  `x-ratelimit-scope: memory` — honest about running without a database.
+- Newsletter endpoint still returns `503 NOT_CONFIGURED` rather than a fake success.
+
+**A sabotage that got away, and what it taught.** Replacing the fallback's
+`source: "memory"` with `"database"` passed the first version of the suite — because the
+suite never exercised the database path at all, so the only branch that could report
+`database` was unreachable in tests. The suite now stubs the client to drive both branches,
+and that sabotage fails. The lesson is the same one as in the typography work: a test that
+cannot reach the code path cannot defend it.

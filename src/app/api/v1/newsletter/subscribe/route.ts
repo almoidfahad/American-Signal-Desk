@@ -1,6 +1,7 @@
 import { serviceClient } from "@/server/db/client";
 import { newsletterSchema } from "@/lib/validation/auth";
-import { apiError, apiOk, apiFromError, clientKey, newRequestId, rateLimit } from "@/server/http/respond";
+import { apiError, apiOk, apiFromError, newRequestId } from "@/server/http/respond";
+import { clientIdentity, rateLimit, rateLimitHeaders } from "@/server/http/rate-limit";
 
 /**
  * POST /api/v1/newsletter/subscribe
@@ -12,10 +13,18 @@ export async function POST(request: Request) {
   const requestId = newRequestId();
 
   try {
-    const limit = rateLimit(clientKey(request, "newsletter"), 5, 60_000);
+    const PER_MINUTE = 5;
+    const limit = await rateLimit({
+      scope: "newsletter",
+      identity: clientIdentity(request),
+      limit: PER_MINUTE,
+      windowMs: 60_000,
+    });
     if (!limit.ok) {
       return apiError(429, "RATE_LIMITED", "Too many attempts. Try again in a minute.", requestId, {
-        "Retry-After": String(Math.ceil((limit.resetAt - Date.now()) / 1000)),
+        ...rateLimitHeaders(limit, PER_MINUTE),
+        // Tells an operator whether this decision was global (database) or per-instance.
+        "X-RateLimit-Scope": limit.source,
       });
     }
 
