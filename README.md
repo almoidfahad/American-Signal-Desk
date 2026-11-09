@@ -18,7 +18,7 @@ review of what is and is not yet sound.
 
 | Area | State | Evidence |
 | --- | --- | --- |
-| Foundation | **Done** | strict TypeScript, ESLint zero-warning, 305 unit tests, production build |
+| Foundation | **Done** | strict TypeScript, ESLint zero-warning, 316 unit tests, production build |
 | Identity & RBAC | **Verified against real PostgreSQL** | `docs/PHASE-2-VERIFICATION.md`, `rls_identity.sql` |
 | Editorial CMS | **Verified against real PostgreSQL** | `docs/PHASE-3-REPORT.md`, migrations `0002`–`0004` |
 | Public website | **Built** | homepage, article, category, search, corrections, policy pages, sitemap/robots |
@@ -32,7 +32,7 @@ Verified locally, at the time of writing:
 ```
 npm run typecheck   → pass (tsc --noEmit, strict, noUncheckedIndexedAccess)
 npm run lint        → pass (eslint --max-warnings=0)
-npm test            → pass (305 tests, 25 files)
+npm test            → pass (316 tests, 25 files)
 npm run build       → pass (16 pages prerendered, 3 API routes)
 npm run test:db     → pass (6 migrations applied + 6 RLS/authorization suites, PostgreSQL 16.2)
 ```
@@ -190,8 +190,8 @@ or a cheap script. It does not stop a distributed attacker; that needs an edge/W
   service-role key may not be read outside the factory (enforced by test).
 - **CSP with a per-request nonce**, `frame-ancestors 'none'` in production, HSTS in production.
 - **Honest states by default.** A missing integration renders "not configured" rather than a
-  green light or a fake success response. `/api/health` returns 503 while dependencies are
-  missing, so an uptime monitor surfaces the gap instead of showing green.
+  green light or a fake success response. `/api/health` verifies the database with a real query and returns 503
+  until that query succeeds, so an uptime monitor surfaces the gap instead of showing green.
 
 ---
 
