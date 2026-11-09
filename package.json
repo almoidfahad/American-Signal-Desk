@@ -18,7 +18,8 @@
     "test:watch": "vitest",
     "test:db": "supabase/tests/harness/run.sh",
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
-    "worker": "node --experimental-strip-types workers/index.ts",
+    "worker": "node --experimental-strip-types --import ./scripts/register-ts.mjs scripts/worker.mjs",
+    "worker:once": "node --experimental-strip-types --import ./scripts/register-ts.mjs scripts/worker.mjs --once",
     "test:all": "npm run test && npm run test:db"
   },
   "dependencies": {

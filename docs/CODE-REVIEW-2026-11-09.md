@@ -323,3 +323,65 @@ suite never exercised the database path at all, so the only branch that could re
 `database` was unreachable in tests. The suite now stubs the client to drive both branches,
 and that sabotage fails. The lesson is the same one as in the typography work: a test that
 cannot reach the code path cannot defend it.
+
+---
+
+## Phase 5 began: a durable job queue, and the publish path that was missing
+
+**Why this was the next backend step.** Scheduling was a promise the CMS could not keep.
+An editor could move an article to `scheduled` with a future `publish_at`, and the UI said
+so — but nothing in the system could move a row *out* of `scheduled`. Every deadline the
+product accepted would have been silently missed, with the article sitting in a state that
+looks like it is queued.
+
+**Architecture: the database is the queue.**
+
+| | choice | reason |
+| --- | --- | --- |
+| queue backend | a `jobs` table in Postgres | the guaranteed atomic claim already exists; adding Redis buys latency this application does not need |
+| delivery | polling (`tick()`), not push | work here is measured in minutes, so a 15s poll is indistinguishable from a notification, and a crashed worker needs no reconnection logic |
+| claiming | `SELECT … FOR UPDATE SKIP LOCKED` | two workers receive disjoint sets and neither blocks the other |
+| failure | exponential backoff, then dead-letter | a dependency that is down is not improved by hammering it; a poison job is not improved by retrying forever |
+| driver | the same `tick()` from two places | `POST /api/cron/tick` (platform scheduler) and `npm run worker` (long-lived loop) |
+
+**The trusted path, and a real bug found by building it.** `publish_due_scheduled_articles`
+must run with no user present. Migration 0003 authorised that with `jwt_role()`, which reads
+`request.jwt.claims`. Two problems surfaced:
+
+1. `jwt_role()` was not `security definer`, so a trigger or a granted function could not rely
+   on the claims being visible to it. It now is, with a pinned `search_path`, and reads them
+   through Supabase's `retrieve_own_jwt()` when that exists.
+2. **The first version of my replacement was wrong in a way that silently disabled
+   authorisation.** `is_trusted_service()` checked `current_user = 'service_role'` — but
+   inside a `security definer` function `current_user` is the *function's owner*, not the
+   caller. Proven with a probe: inside a definer function, an `authenticated` session still
+   reports `current_user = postgres`. That made every caller trusted, and the existing
+   workflow suite caught it: *"author publishes own draft directly — statement succeeded but
+   should have been rejected"*. The function is now invoker-rights on purpose, and trusts
+   either the service-role claim or a missing JWT on a non-request session.
+
+A related trap worth recording: `RETURNS SETOF public.jobs` exposes a `status` column, and
+`status` is also a plpgsql built-in (the `GET DIAGNOSTICS` variable). Without
+`#variable_conflict use_column`, `claim_jobs` returned zero rows at runtime with no error at
+definition time.
+
+**Security posture.** `jobs` has RLS enabled and no policies; every access goes through
+`security definer` functions that each refuse a non-trusted caller. `anon` and
+`authenticated` are revoked from the table *and* the functions, so a signed-in editor cannot
+read the queue, inject work, or publish early by calling the publisher directly — proven in
+the suite.
+
+**Verification**
+
+- `supabase/tests/rls_jobs.sql` — claim exclusivity, success, backoff, dead-letter, lease
+  recovery, scheduled publication publishing only what is due, and anon/authenticated
+  denial. Runs with the other suites: 5 suites pass, all migrations apply.
+- `tests/jobs.test.ts` (21 tests) — kinds and handlers stay in step, retryable vs permanent
+  failures, a thrown handler, an unknown kind dead-lettered rather than dropped, one bad job
+  not stopping the batch, the worker calling the *same* `tick()`, and the cron endpoint's
+  constant-time secret comparison.
+- End to end against real PostgreSQL 16.2: a `scheduled` article with `publish_at` five
+  minutes in the past becomes `published` with a timestamp; a future one does not.
+- `POST /api/cron/tick` without a secret returns `401` with no detail about which part failed.
+- Sabotage ×2: trusting any JWT fails the *existing* workflow suite; removing
+  `publish_at <= now()` fails the job suite.
