@@ -18,7 +18,7 @@ review of what is and is not yet sound.
 
 | Area | State | Evidence |
 | --- | --- | --- |
-| Foundation | **Done** | strict TypeScript, ESLint zero-warning, 300 unit tests, production build |
+| Foundation | **Done** | strict TypeScript, ESLint zero-warning, 305 unit tests, production build |
 | Identity & RBAC | **Verified against real PostgreSQL** | `docs/PHASE-2-VERIFICATION.md`, `rls_identity.sql` |
 | Editorial CMS | **Verified against real PostgreSQL** | `docs/PHASE-3-REPORT.md`, migrations `0002`–`0004` |
 | Public website | **Built** | homepage, article, category, search, corrections, policy pages, sitemap/robots |
@@ -32,7 +32,7 @@ Verified locally, at the time of writing:
 ```
 npm run typecheck   → pass (tsc --noEmit, strict, noUncheckedIndexedAccess)
 npm run lint        → pass (eslint --max-warnings=0)
-npm test            → pass (300 tests, 24 files)
+npm test            → pass (305 tests, 25 files)
 npm run build       → pass (16 pages prerendered, 3 API routes)
 npm run test:db     → pass (6 migrations applied + 6 RLS/authorization suites, PostgreSQL 16.2)
 ```
@@ -214,7 +214,7 @@ src/server/http/       Uniform responses and the rate limiter
 scripts/               dev launcher, job worker, TypeScript alias resolver
 supabase/migrations/   Versioned SQL migrations (0001–0007)
 supabase/tests/        RLS/authorization SQL suites (6)
-tests/                 Vitest unit suites (24 files)
+tests/                 Vitest unit suites (25 files)
 docs/                  Audit, phase reports, code review
 ```
 
@@ -226,9 +226,12 @@ docs/                  Audit, phase reports, code review
    returns 200 rather than 503.
 2. Run `npm run test:db` against a non-production database and confirm all six suites pass.
 3. Enable MFA in Supabase Auth; keep `REQUIRE_MFA_FOR_ADMIN` unset or `true`.
-4. Set `CRON_SECRET` and point a scheduler at `POST /api/cron/tick`, or run `npm run worker`.
+4. Drive the queue. Put the same `CRON_SECRET` (16+ characters) in this repository's Actions
+   secrets and in the Vercel project's environment variables: the `Queue tick` workflow then
+   calls `POST /api/cron/tick` every five minutes, so scheduled articles publish within that
+   window. For minute-level scheduling, run `npm run worker` on an always-on host instead.
    **Without one of the two, scheduled articles never publish** — the queue exists but nothing
-   drives it.
+   drives it, and the workflow warns on every run until the secret is set.
 5. Have counsel review every draft policy page under `src/app/(public)/`.
 6. Replace the placeholder `ads@` / `corrections@` addresses with real, monitored mailboxes.
 7. Set `RESEND_API_KEY` and `EMAIL_FROM`, or the confirmation emails stay queued forever and
