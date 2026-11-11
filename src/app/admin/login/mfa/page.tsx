@@ -29,9 +29,11 @@ export default async function MfaPage() {
     );
   }
 
-  // Already satisfied a second factor -> straight to the dashboard.
   const session = await getAdminSession();
-  if (session?.mfaVerified) redirect("/admin");
+  // Not signed in -> the sign-in page. Already satisfied a second factor, or the policy
+  // does not require one -> straight to the dashboard.
+  if (!session) redirect("/admin/login");
+  if (session.mfaVerified || !session.mfaRequired) redirect("/admin");
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-12">
@@ -42,7 +44,8 @@ export default async function MfaPage() {
       <div className="rounded-xl bg-white p-7 shadow-xl shadow-navy-900/5 ring-1 ring-navy-100">
         <h1 className="text-heading font-extrabold text-navy-900">Two-factor verification</h1>
         <p className="mt-1 text-small text-navy-600">
-          Enter the 6-digit code from your authenticator app to continue.
+          Verify your authenticator app to continue — or set one up if this account has none
+          yet. Privileged accounts require a second factor.
         </p>
         <div className="mt-5">
           <MfaForm />
