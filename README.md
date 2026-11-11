@@ -18,7 +18,7 @@ review of what is and is not yet sound.
 
 | Area | State | Evidence |
 | --- | --- | --- |
-| Foundation | **Done** | strict TypeScript, ESLint zero-warning, 316 unit tests, production build |
+| Foundation | **Done** | strict TypeScript, ESLint zero-warning, 319 unit tests, production build |
 | Identity & RBAC | **Verified against real PostgreSQL** | `docs/PHASE-2-VERIFICATION.md`, `rls_identity.sql` |
 | Editorial CMS | **Verified against real PostgreSQL** | `docs/PHASE-3-REPORT.md`, migrations `0002`–`0004` |
 | Public website | **Built** | homepage, article, category, search, corrections, policy pages, sitemap/robots |
@@ -32,7 +32,7 @@ Verified locally, at the time of writing:
 ```
 npm run typecheck   → pass (tsc --noEmit, strict, noUncheckedIndexedAccess)
 npm run lint        → pass (eslint --max-warnings=0)
-npm test            → pass (316 tests, 25 files)
+npm test            → pass (319 tests, 26 files)
 npm run build       → pass (16 pages prerendered, 3 API routes)
 npm run test:db     → pass (6 migrations applied + 6 RLS/authorization suites, PostgreSQL 16.2)
 ```
@@ -214,7 +214,7 @@ src/server/http/       Uniform responses and the rate limiter
 scripts/               dev launcher, job worker, TypeScript alias resolver
 supabase/migrations/   Versioned SQL migrations (0001–0007)
 supabase/tests/        RLS/authorization SQL suites (6)
-tests/                 Vitest unit suites (25 files)
+tests/                 Vitest unit suites (26 files)
 docs/                  Audit, phase reports, code review
 ```
 

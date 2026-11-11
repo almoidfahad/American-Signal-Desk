@@ -51,9 +51,11 @@ export function AdminLoginForm() {
         return;
       }
 
-      // Privileged access additionally requires a verified second factor.
+      // Privileged access additionally requires a verified second factor. The two-factor
+      // page enrols an authenticator when the account has none yet, and returns here once
+      // the session carries `aal2` (or when policy does not require a second factor).
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+      if (aal?.currentLevel !== "aal2") {
         router.push("/admin/login/mfa");
         return;
       }

@@ -38,9 +38,9 @@ const DENIAL: Record<
   },
   mfa: {
     title: "Multi-factor authentication required",
-    body: "Privileged accounts must complete a second factor before this page unlocks.",
-    href: "/admin/login",
-    label: "Complete sign in",
+    body: "Privileged accounts must complete a second factor before this page unlocks. Continue to the two-factor page to verify — or to set up an authenticator app if you have not enrolled one yet.",
+    href: "/admin/login/mfa",
+    label: "Continue to two-factor",
   },
   forbidden: {
     title: "Not your permission to use",
